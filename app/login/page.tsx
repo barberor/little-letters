@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { supabase } from "@/lib/supabaseClient";
 
 export default function LoginPage() {
@@ -36,20 +37,32 @@ export default function LoginPage() {
 
     const role = data.user?.user_metadata?.role;
 
-    // 🔁 Role-based routing
     if (role === "mentor" || role === "student") {
       router.push("/dashboard");
     } else {
-      router.push("/"); // parent / teacher (adjust later)
+      router.push("/");
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4">
-      <div className="w-full max-w-md space-y-6">
-        <h1 className="text-2xl font-semibold text-center">
+    <main
+      className="min-h-screen flex items-center justify-center px-4"
+      style={{
+        background: "radial-gradient(circle at top, #fafaf7, #f5f5f0)",
+      }}
+    >
+      <div className="w-full max-w-md bg-white/70 rounded-3xl p-8 shadow-sm space-y-6">
+
+        <h1
+          className="text-3xl font-semibold text-center"
+          style={{ color: "#8B6F5B" }}
+        >
           Welcome back
         </h1>
+
+        <p className="text-sm text-center text-[#6f5a4d]">
+          We’re glad you’re here.
+        </p>
 
         <div className="space-y-3">
           <input
@@ -57,7 +70,7 @@ export default function LoginPage() {
             placeholder="Email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full border rounded-md px-3 py-2"
+            className="w-full rounded-xl border border-[#d6cfc8] px-4 py-2 bg-white"
           />
 
           <input
@@ -65,29 +78,29 @@ export default function LoginPage() {
             placeholder="Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full border rounded-md px-3 py-2"
+            className="w-full rounded-xl border border-[#d6cfc8] px-4 py-2 bg-white"
           />
         </div>
 
         {error && (
-          <p className="text-red-600 text-sm text-center">{error}</p>
+          <p className="text-sm text-red-600 text-center">{error}</p>
         )}
 
         <button
           onClick={handleLogin}
           disabled={loading}
-          className="w-full bg-black text-white rounded-md py-2 disabled:opacity-50"
+          className="w-full rounded-2xl py-3 text-lg font-medium bg-[#9CAF88] text-white transition-all hover:scale-105 disabled:opacity-50"
         >
-          {loading ? "Logging in..." : "Log in"}
+          {loading ? "Signing in..." : "Sign in"}
         </button>
 
-        <p className="text-sm text-center text-gray-600">
+        <p className="text-sm text-center text-[#6f5a4d]">
           Don’t have an account?{" "}
-          <a href="/signup" className="underline">
+          <Link href="/signup" className="underline">
             Sign up
-          </a>
+          </Link>
         </p>
       </div>
-    </div>
+    </main>
   );
 }
