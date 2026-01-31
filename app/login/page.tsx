@@ -9,7 +9,6 @@ export default function LoginPage() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -23,7 +22,7 @@ export default function LoginPage() {
 
     setLoading(true);
 
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
@@ -35,8 +34,14 @@ export default function LoginPage() {
       return;
     }
 
-    // ✅ Login successful
-    router.push("/"); // change this to your dashboard/home page
+    const role = data.user?.user_metadata?.role;
+
+    // 🔁 Role-based routing
+    if (role === "mentor" || role === "student") {
+      router.push("/dashboard");
+    } else {
+      router.push("/"); // parent / teacher (adjust later)
+    }
   };
 
   return (
@@ -76,20 +81,12 @@ export default function LoginPage() {
           {loading ? "Logging in..." : "Log in"}
         </button>
 
-        <div className="text-sm text-center text-gray-600 space-y-1">
-          <p>
-            Don’t have an account?{" "}
-            <a href="/signup" className="underline">
-              Sign up
-            </a>
-          </p>
-
-          <p>
-            <a href="/reset-password" className="underline">
-              Forgot your password?
-            </a>
-          </p>
-        </div>
+        <p className="text-sm text-center text-gray-600">
+          Don’t have an account?{" "}
+          <a href="/signup" className="underline">
+            Sign up
+          </a>
+        </p>
       </div>
     </div>
   );
