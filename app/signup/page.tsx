@@ -18,10 +18,15 @@ export default function SignUpPage() {
   const router = useRouter();
 
   const [role, setRole] = useState<Role | null>(null);
+
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+
+  // NEW FIELDS
+  const [grade, setGrade] = useState("");           // student
+  const [interests, setInterests] = useState("");   // student + mentor
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -35,8 +40,24 @@ export default function SignUpPage() {
       return;
     }
 
+    if (!email || !password) {
+      setError("Please fill out all required fields.");
+      return;
+    }
+
     if (password !== confirmPassword) {
       setError("Passwords do not match.");
+      return;
+    }
+
+    // Basic validation
+    if (role === "student" && !grade) {
+      setError("Please select a grade.");
+      return;
+    }
+
+    if ((role === "student" || role === "mentor") && !interests) {
+      setError("Please add at least one interest.");
       return;
     }
 
@@ -46,7 +67,10 @@ export default function SignUpPage() {
       email,
       password,
       options: {
-        data: { role, fullName },
+        data: {
+          role,
+          fullName,
+        },
       },
     });
 
@@ -57,6 +81,7 @@ export default function SignUpPage() {
       return;
     }
 
+    // 🚀 Student & Mentor go straight to dashboard
     if (role === "student" || role === "mentor") {
       router.push("/dashboard");
       return;
@@ -78,7 +103,7 @@ export default function SignUpPage() {
           Create your account
         </h1>
 
-        {/* 👇 ESCAPE HATCH */}
+        {/* Escape hatch */}
         {!signedUpEmail && (
           <p className="text-sm text-center text-[#6f5a4d]">
             Already have an account?{" "}
@@ -88,6 +113,7 @@ export default function SignUpPage() {
           </p>
         )}
 
+        {/* ROLE SELECTION */}
         {!role && (
           <>
             <p className="text-center text-[#6f5a4d]">
@@ -108,6 +134,7 @@ export default function SignUpPage() {
           </>
         )}
 
+        {/* FORM */}
         {role && !signedUpEmail && (
           <>
             <p className="text-sm text-center text-[#6f5a4d]">
@@ -122,13 +149,42 @@ export default function SignUpPage() {
                 className="w-full rounded-xl border border-[#d6cfc8] px-4 py-2"
               />
 
+              {/* STUDENT ONLY */}
+              {role === "student" && (
               <input
-                type="email"
-                placeholder="Email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                type="text"
+                placeholder="Grade (e.g. 2nd, Grade 4, K)"
+                value={grade}
+                onChange={(e) => setGrade(e.target.value)}
                 className="w-full rounded-xl border border-[#d6cfc8] px-4 py-2"
               />
+            )}
+
+
+              {/* STUDENT + MENTOR */}
+              {(role === "student" || role === "mentor") && (
+                <input
+                  placeholder="Interests (e.g. art, animals, soccer)"
+                  value={interests}
+                  onChange={(e) => setInterests(e.target.value)}
+                  className="w-full rounded-xl border border-[#d6cfc8] px-4 py-2"
+                />
+              )}
+
+              <input
+            type="email"
+            placeholder={
+              role === "student"
+                ? "School Email"
+                : role === "mentor"
+                ? "MSU Email"
+                : "Email"
+            }
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="w-full rounded-xl border border-[#d6cfc8] px-4 py-2"
+          />
+
 
               <input
                 type="password"
@@ -177,6 +233,7 @@ export default function SignUpPage() {
             </p>
           </div>
         )}
+
       </div>
     </main>
   );
