@@ -50,17 +50,9 @@ export default function Dashboard() {
       case 'growing':
         return <img src="/growing.png" alt="Growing" style={{ width: '80%', height: '80%', objectFit: 'contain' }} />
       case 'grown':
-        return <img src="/grown.png" alt="Flower" style={{ width: '80%', height: '80%', objectFit: 'contain' }} />
+        return <img src="/grown.png" alt="Grown" style={{ width: '80%', height: '80%', objectFit: 'contain' }} />
       default:
         return '➕'
-    }
-  }
-
-  // All plots have grass background
-  const getPlotStyle = (stage) => {
-    return {
-      backgroundColor: '#7cb342', // Grass green color
-      backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,.05) 2px, rgba(0,0,0,.05) 4px)',
     }
   }
 
@@ -122,7 +114,9 @@ export default function Dashboard() {
           alignItems: 'center',
           gap: '0.5rem'
         }}>
-          <span>🌰</span>
+          <span>
+            <img src="/small-seed.png" alt="Seed" style={{ width: '1.7rem', height: '1.7rem', objectFit: 'contain' }} />
+          </span>
           <span>Seeds: {seeds}</span>
         </div>
       </div>
@@ -138,7 +132,7 @@ export default function Dashboard() {
               Click on an empty plot (➕) to plant a seed!
             </p>
 
-            {/* Garden Grid - Single dirt background with 8 clickable plots */}
+            {/* Garden Grid - Green grass surrounding area with brown dirt plots */}
             <div style={{ 
               display: 'grid', 
               gridTemplateColumns: 'repeat(4, 1fr)',
@@ -146,23 +140,12 @@ export default function Dashboard() {
               width: '100%',
               maxWidth: '680px',
               padding: '1.5rem',
-              backgroundColor: '#8B7355',
-              backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,0,0,.08) 3px, rgba(0,0,0,.08) 6px)',
+              backgroundColor: '#7cb342', // Green grass between plots
               borderRadius: '16px',
-              border: '3px solid #6B5644',
+              border: '3px solid rgb(151, 95, 62)',
               boxSizing: 'border-box'
             }}>
               {plots.map(plot => {
-                // Determine background based on growth stage
-                let plotBg = 'transparent' // Empty - show dirt
-                if (plot.stage === 'sprouting' || plot.stage === 'growing') {
-                  // Partially green (grass growing)
-                  plotBg = 'radial-gradient(circle, #7cb342 40%, transparent 70%)'
-                } else if (plot.stage === 'grown') {
-                  // Fully green
-                  plotBg = '#7cb342'
-                }
-
                 return (
                   <div
                     key={plot.id}
@@ -172,8 +155,8 @@ export default function Dashboard() {
                       aspectRatio: '1',
                       maxWidth: '150px',
                       maxHeight: '150px',
-                      background: plotBg,
-                      border: plot.stage === 'empty' ? '2px dashed rgba(255,255,255,0.3)' : '2px solid #4f8f63',
+                      backgroundColor: 'rgb(151, 95, 62)', // Exact brown dirt color
+                      border: `3px solid rgb(151, 95, 62)`,
                       borderRadius: '12px',
                       display: 'flex',
                       alignItems: 'center',
@@ -187,13 +170,13 @@ export default function Dashboard() {
                     onMouseEnter={(e) => {
                       if (plot.stage === 'empty') {
                         e.currentTarget.style.opacity = '1'
-                        e.currentTarget.style.backgroundColor = 'rgba(139, 115, 85, 0.3)'
+                        e.currentTarget.style.transform = 'scale(1.02)'
                       }
                     }}
                     onMouseLeave={(e) => {
                       if (plot.stage === 'empty') {
                         e.currentTarget.style.opacity = '0.6'
-                        e.currentTarget.style.backgroundColor = 'transparent'
+                        e.currentTarget.style.transform = 'scale(1)'
                       }
                     }}
                   >
