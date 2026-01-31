@@ -1,6 +1,6 @@
-LittleLetters
+Little Letters
 
-LittleLetters is a mentorship-first pen-pal platform that safely connects MSU student mentors with K–12 students through guided, letter-based communication with parent access and built-in safety guardrails.
+Little Letters is a mentorship-first pen-pal platform that safely connects MSU student mentors with K–12 students through guided, letter-based communication with parent access and built-in safety guardrails.
 Built for a hackathon, LittleLetters demonstrates how intentional matching and thoughtful design can make mentorship accessible, safe, and engaging for younger learners.
 
 Team
