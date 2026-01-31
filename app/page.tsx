@@ -1,3 +1,5 @@
+import Link from 'next/link'
+
 export default function Home() {
   return (
     <main className="min-h-screen px-6 py-20">
@@ -6,37 +8,29 @@ export default function Home() {
         <h1 className="text-5xl font-bold mb-6">
           Little Letters
         </h1>
-        <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+        <p className="text-lg text-gray-600 max-w-3xl mx-auto mb-10">
           Connecting K–12 students with MSU mentors through letters,
           creativity, and encouragement.
         </p>
-
+        
+        {/* Login and Dashboard Buttons */}
+        <div className="flex gap-4 justify-center">
+          <Link href="/stu-login">
+            <button className="px-8 py-3 rounded-full font-medium text-lg bg-[#4f8f63] text-white hover:bg-[#3f7350] transition shadow-md hover:shadow-lg">
+              Login
+            </button>
+          </Link>
+          
+          {/* Temporary Dashboard Button */}
+          <Link href="/dashboard">
+            <button className="px-8 py-3 rounded-full font-medium text-lg bg-gray-600 text-white hover:bg-gray-700 transition shadow-md hover:shadow-lg">
+              Dashboard (temp)
+            </button>
+          </Link>
+        </div>
+        
         {/* Decorative divider */}
         <div className="w-24 h-1 bg-[#4f8f63] mx-auto rounded-full mt-10" />
-      </section>
-
-      {/* Role Cards */}
-      <section className="max-w-6xl mx-auto grid gap-8 md:grid-cols-3 mb-32">
-        <RoleCard
-          title="Students"
-          description="Write letters, draw pictures, and connect with a college mentor."
-          button="Student Login"
-        />
-
-        {/* Slightly raised middle card */}
-        <div className="relative md:-top-6">
-          <RoleCard
-            title="Parents"
-            description="Approve participation and monitor your child’s experience."
-            button="Parent Portal"
-          />
-        </div>
-
-        <RoleCard
-          title="Mentors"
-          description="MSU students supporting younger learners through letters."
-          button="Mentor Login"
-        />
       </section>
 
       {/* How It Works */}
@@ -56,31 +50,6 @@ export default function Home() {
 }
 
 /* ---------- Components ---------- */
-
-function RoleCard({
-  title,
-  description,
-  button,
-}: {
-  title: string;
-  description: string;
-  button: string;
-}) {
-  return (
-    <div className="bg-white rounded-3xl shadow-lg p-8 text-center transition hover:shadow-xl">
-      <h3 className="text-2xl font-semibold mb-4">
-        {title}
-      </h3>
-      <p className="text-gray-600 mb-8">
-        {description}
-      </p>
-      <button className="px-6 py-2 rounded-full font-medium bg-[#4f8f63] text-white hover:bg-[#3f7350] transition">
-        {button}
-      </button>
-    </div>
-  );
-}
-
 function Step({ text }: { text: string }) {
   return (
     <div className="bg-[#f3f7f4] rounded-2xl shadow-sm p-6">
@@ -90,4 +59,3 @@ function Step({ text }: { text: string }) {
     </div>
   );
 }
-
