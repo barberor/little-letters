@@ -22,7 +22,6 @@ export default function SignUpPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [universityEmail, setUniversityEmail] = useState("");
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -79,6 +78,16 @@ export default function SignUpPage() {
           Create your account
         </h1>
 
+        {/* 👇 ESCAPE HATCH */}
+        {!signedUpEmail && (
+          <p className="text-sm text-center text-[#6f5a4d]">
+            Already have an account?{" "}
+            <Link href="/login" className="underline">
+              Sign in
+            </Link>
+          </p>
+        )}
+
         {!role && (
           <>
             <p className="text-center text-[#6f5a4d]">
@@ -112,15 +121,6 @@ export default function SignUpPage() {
                 onChange={(e) => setFullName(e.target.value)}
                 className="w-full rounded-xl border border-[#d6cfc8] px-4 py-2"
               />
-
-              {role === "mentor" && (
-                <input
-                  placeholder="University email"
-                  value={universityEmail}
-                  onChange={(e) => setUniversityEmail(e.target.value)}
-                  className="w-full rounded-xl border border-[#d6cfc8] px-4 py-2"
-                />
-              )}
 
               <input
                 type="email"
@@ -177,8 +177,6 @@ export default function SignUpPage() {
             </p>
           </div>
         )}
-
-  
       </div>
     </main>
   );
