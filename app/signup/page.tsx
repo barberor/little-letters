@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { supabase } from "@/lib/supabaseClient";
 
 type Role = "parent" | "teacher" | "student" | "mentor";
@@ -13,17 +15,14 @@ const roleLabels: Record<Role, string> = {
 };
 
 export default function SignUpPage() {
-  const [role, setRole] = useState<Role | null>(null);
+  const router = useRouter();
 
+  const [role, setRole] = useState<Role | null>(null);
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-
-  // Optional role-specific fields
-  const [childAge, setChildAge] = useState(""); // parent
-  const [schoolName, setSchoolName] = useState(""); // teacher / student
-  const [universityEmail, setUniversityEmail] = useState(""); // mentor
+  const [universityEmail, setUniversityEmail] = useState("");
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -37,19 +36,8 @@ export default function SignUpPage() {
       return;
     }
 
-    if (!email || !password) {
-      setError("Please fill out all required fields.");
-      return;
-    }
-
     if (password !== confirmPassword) {
       setError("Passwords do not match.");
-      return;
-    }
-
-    // Optional mentor validation (you can tighten this later)
-    if (role === "mentor" && !universityEmail) {
-      setError("Please provide your university email.");
       return;
     }
 
@@ -59,10 +47,7 @@ export default function SignUpPage() {
       email,
       password,
       options: {
-        data: {
-          role,       
-          fullName,   
-        },
+        data: { role, fullName },
       },
     });
 
@@ -73,46 +58,51 @@ export default function SignUpPage() {
       return;
     }
 
-    // NOTE:
-    // Role + profile data should be saved later (server action)
-    // after email confirmation.
+    if (role === "student" || role === "mentor") {
+      router.push("/dashboard");
+      return;
+    }
 
     setSignedUpEmail(data.user?.email ?? email);
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4">
-      <div className="w-full max-w-md space-y-6">
-        <h1 className="text-2xl font-semibold text-center">
+    <main
+      className="min-h-screen flex items-center justify-center px-4"
+      style={{
+        background: "radial-gradient(circle at top, #fafaf7, #f5f5f0)",
+      }}
+    >
+      <div className="w-full max-w-md bg-white/70 rounded-3xl p-8 shadow-sm space-y-6">
+
+        <h1 className="text-3xl font-semibold text-center text-[#8B6F5B]">
           Create your account
         </h1>
 
-        {/* ROLE SELECTION */}
         {!role && (
-          <div className="space-y-3">
-            <p className="text-center text-gray-600">
-              I am signing up as a:
+          <>
+            <p className="text-center text-[#6f5a4d]">
+              I’m signing up as a:
             </p>
 
-            <div className="grid grid-cols-1 gap-2">
+            <div className="space-y-2">
               {(Object.keys(roleLabels) as Role[]).map((r) => (
                 <button
                   key={r}
                   onClick={() => setRole(r)}
-                  className="border rounded-md py-2 hover:bg-gray-50"
+                  className="w-full rounded-xl border border-[#d6cfc8] py-2 hover:bg-[#fafaf7]"
                 >
                   {roleLabels[r]}
                 </button>
               ))}
             </div>
-          </div>
+          </>
         )}
 
-        {/* SIGNUP FORM */}
         {role && !signedUpEmail && (
           <>
-            <p className="text-sm text-center text-gray-500">
-              Signing up as <span className="capitalize">{roleLabels[role]}</span>
+            <p className="text-sm text-center text-[#6f5a4d]">
+              Signing up as {roleLabels[role]}
             </p>
 
             <div className="space-y-3">
@@ -120,34 +110,15 @@ export default function SignUpPage() {
                 placeholder="Full name"
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
-                className="w-full border rounded-md px-3 py-2"
+                className="w-full rounded-xl border border-[#d6cfc8] px-4 py-2"
               />
-
-              {/* ROLE-SPECIFIC FIELDS */}
-              {role === "parent" && (
-                <input
-                  placeholder="Child’s age"
-                  value={childAge}
-                  onChange={(e) => setChildAge(e.target.value)}
-                  className="w-full border rounded-md px-3 py-2"
-                />
-              )}
-
-              {(role === "teacher" || role === "student") && (
-                <input
-                  placeholder="School name"
-                  value={schoolName}
-                  onChange={(e) => setSchoolName(e.target.value)}
-                  className="w-full border rounded-md px-3 py-2"
-                />
-              )}
 
               {role === "mentor" && (
                 <input
-                  placeholder="University email (e.g. @msu.edu)"
+                  placeholder="University email"
                   value={universityEmail}
                   onChange={(e) => setUniversityEmail(e.target.value)}
-                  className="w-full border rounded-md px-3 py-2"
+                  className="w-full rounded-xl border border-[#d6cfc8] px-4 py-2"
                 />
               )}
 
@@ -156,7 +127,7 @@ export default function SignUpPage() {
                 placeholder="Email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full border rounded-md px-3 py-2"
+                className="w-full rounded-xl border border-[#d6cfc8] px-4 py-2"
               />
 
               <input
@@ -164,7 +135,7 @@ export default function SignUpPage() {
                 placeholder="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full border rounded-md px-3 py-2"
+                className="w-full rounded-xl border border-[#d6cfc8] px-4 py-2"
               />
 
               <input
@@ -172,44 +143,43 @@ export default function SignUpPage() {
                 placeholder="Confirm password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                className="w-full border rounded-md px-3 py-2"
+                className="w-full rounded-xl border border-[#d6cfc8] px-4 py-2"
               />
             </div>
 
             {error && (
-              <p className="text-red-600 text-sm text-center">{error}</p>
+              <p className="text-sm text-red-600 text-center">{error}</p>
             )}
 
             <button
               onClick={handleSignUp}
               disabled={loading}
-              className="w-full bg-black text-white rounded-md py-2 disabled:opacity-50"
+              className="w-full rounded-2xl py-3 text-lg font-medium bg-[#9CAF88] text-white transition-all hover:scale-105 disabled:opacity-50"
             >
               {loading ? "Creating account..." : "Sign up"}
             </button>
 
             <button
               onClick={() => setRole(null)}
-              className="w-full text-sm underline text-gray-500"
+              className="text-sm underline text-[#6f5a4d] w-full"
             >
               Change role
             </button>
           </>
         )}
 
-        {/* SUCCESS */}
         {signedUpEmail && (
           <div className="text-center space-y-2">
-            <p className="text-green-600 text-lg font-medium">
-              Welcome!
-            </p>
-            <p>{signedUpEmail}</p>
-            <p className="text-sm text-gray-500">
+            <p className="text-green-700 font-medium">Welcome!</p>
+            <p className="text-sm">{signedUpEmail}</p>
+            <p className="text-xs text-[#6f5a4d]">
               Check your email to confirm your account.
             </p>
           </div>
         )}
+
+  
       </div>
-    </div>
+    </main>
   );
 }
