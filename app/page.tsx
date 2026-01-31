@@ -15,7 +15,7 @@ export default function Home() {
         
         {/* Login and Dashboard Buttons */}
         <div className="flex gap-4 justify-center">
-          <Link href="/stu-login">
+          <Link href="/login">
             <button className="px-8 py-3 rounded-full font-medium text-lg bg-[#4f8f63] text-white hover:bg-[#3f7350] transition shadow-md hover:shadow-lg">
               Login
             </button>
