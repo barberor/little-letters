@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 
 type Role = "parent" | "teacher" | "student" | "mentor";
@@ -13,6 +14,8 @@ const roleLabels: Record<Role, string> = {
 };
 
 export default function SignUpPage() {
+  const router = useRouter();
+
   const [role, setRole] = useState<Role | null>(null);
 
   const [fullName, setFullName] = useState("");
@@ -20,10 +23,9 @@ export default function SignUpPage() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
-  // Optional role-specific fields
-  const [childAge, setChildAge] = useState(""); // parent
-  const [schoolName, setSchoolName] = useState(""); // teacher / student
-  const [universityEmail, setUniversityEmail] = useState(""); // mentor
+  const [childAge, setChildAge] = useState("");
+  const [schoolName, setSchoolName] = useState("");
+  const [universityEmail, setUniversityEmail] = useState("");
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -47,7 +49,6 @@ export default function SignUpPage() {
       return;
     }
 
-    // Optional mentor validation (you can tighten this later)
     if (role === "mentor" && !universityEmail) {
       setError("Please provide your university email.");
       return;
@@ -60,8 +61,8 @@ export default function SignUpPage() {
       password,
       options: {
         data: {
-          role,       
-          fullName,   
+          role,
+          fullName,
         },
       },
     });
@@ -73,10 +74,13 @@ export default function SignUpPage() {
       return;
     }
 
-    // NOTE:
-    // Role + profile data should be saved later (server action)
-    // after email confirmation.
+    // ✅ Route immediately for student & mentor
+    if (role === "student" || role === "mentor") {
+      router.push("/dashboard");
+      return;
+    }
 
+    // Parent / Teacher stay on welcome screen
     setSignedUpEmail(data.user?.email ?? email);
   };
 
@@ -112,7 +116,7 @@ export default function SignUpPage() {
         {role && !signedUpEmail && (
           <>
             <p className="text-sm text-center text-gray-500">
-              Signing up as <span className="capitalize">{roleLabels[role]}</span>
+              Signing up as {roleLabels[role]}
             </p>
 
             <div className="space-y-3">
@@ -123,7 +127,6 @@ export default function SignUpPage() {
                 className="w-full border rounded-md px-3 py-2"
               />
 
-              {/* ROLE-SPECIFIC FIELDS */}
               {role === "parent" && (
                 <input
                   placeholder="Child’s age"
@@ -197,7 +200,7 @@ export default function SignUpPage() {
           </>
         )}
 
-        {/* SUCCESS */}
+        {/* SUCCESS (Parent / Teacher) */}
         {signedUpEmail && (
           <div className="text-center space-y-2">
             <p className="text-green-600 text-lg font-medium">
