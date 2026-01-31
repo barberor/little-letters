@@ -46,11 +46,11 @@ export default function Dashboard() {
       case 'empty':
         return '➕' // Plus sign for empty plot
       case 'sprouting':
-        return '🌱' // Sprout
+        return <img src="/sprout.png" alt="Sprout" style={{ width: '80%', height: '80%', objectFit: 'contain' }} />
       case 'growing':
-        return '🌿' // Growing plant
+        return <img src="/growing.png" alt="Growing" style={{ width: '80%', height: '80%', objectFit: 'contain' }} />
       case 'grown':
-        return '🌸' // Flower
+        return <img src="/grown.png" alt="Flower" style={{ width: '80%', height: '80%', objectFit: 'contain' }} />
       default:
         return '➕'
     }
