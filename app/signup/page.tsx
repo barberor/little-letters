@@ -92,7 +92,7 @@ export default function SignUpPage() {
               <button
                 key={r}
                 onClick={() => setRole(r)}
-                className="w-full rounded-xl border border-[#d6cfc8] py-2 bg-white hover:bg-[#fafaf7] transition"
+                className="w-full rounded-xl border border-[#d6cfc8] py-2 bg-[#9CAF88] text-white hover:scale-105 transition"
               >
                 {roleLabels[r]}
               </button>

@@ -103,38 +103,41 @@ export default function Dashboard() {
             left: 0,
             right: 0,
             bottom: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            backgroundColor: 'rgba(0, 0, 0, 0.6)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            zIndex: 1000
+            zIndex: 1000,
+            backdropFilter: 'blur(4px)'
           }}
           onClick={closeMessage}
         >
           <div 
             style={{
-              backgroundColor: 'white',
-              borderRadius: '12px',
-              padding: '2rem',
-              maxWidth: '600px',
+              backgroundColor: '#fafaf7',
+              borderRadius: '24px',
+              padding: '3rem',
+              maxWidth: '650px',
               width: '90%',
               position: 'relative',
-              boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
+              boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)',
+              border: '3px solid #E8C5B5',
             }}
             onClick={(e) => e.stopPropagation()}
           >
             {selectedMessage.isOpen && (
               <div style={{
-                backgroundColor: '#fff3cd',
-                border: '1px solid #ffc107',
-                borderRadius: '6px',
-                padding: '0.75rem',
-                marginBottom: '1rem',
-                color: '#856404',
-                fontSize: '0.9rem',
-                textAlign: 'center'
+                backgroundColor: '#fff9e6',
+                border: '2px dashed #d4a574',
+                borderRadius: '12px',
+                padding: '1rem',
+                marginBottom: '1.5rem',
+                color: '#8B7355',
+                fontSize: '1.1rem',
+                textAlign: 'center',
+                fontWeight: 500
               }}>
-                This message has already been opened
+                You've already read this one!
               </div>
             )}
 
@@ -142,34 +145,74 @@ export default function Dashboard() {
               onClick={closeMessage}
               style={{
                 position: 'absolute',
-                top: '1rem',
-                right: '1rem',
-                background: 'none',
+                top: '1.5rem',
+                right: '1.5rem',
+                background: '#E8C5B5',
                 border: 'none',
                 fontSize: '1.5rem',
                 cursor: 'pointer',
-                color: '#666',
-                width: '30px',
-                height: '30px',
+                color: '#8B7355',
+                width: '40px',
+                height: '40px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 borderRadius: '50%',
-                transition: 'background-color 0.2s'
+                transition: 'all 0.2s',
+                fontWeight: 'bold'
               }}
-              onMouseEnter={(e) => e.target.style.backgroundColor = '#f0f0f0'}
-              onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
+              onMouseEnter={(e) => {
+                e.target.style.backgroundColor = '#D9B6A6'
+                e.target.style.transform = 'scale(1.1)'
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.backgroundColor = '#E8C5B5'
+                e.target.style.transform = 'scale(1)'
+              }}
             >
               ✕
             </button>
 
-            <h2 style={{ marginBottom: '1rem', paddingRight: '2rem' }}>{selectedMessage.subject}</h2>
-            <p style={{ color: '#666', marginBottom: '1.5rem', fontSize: '0.9rem' }}>
-              From: {selectedMessage.from}
-            </p>
-            <p style={{ lineHeight: '1.6', color: '#333' }}>
-              {selectedMessage.content}
-            </p>
+            <div style={{
+              display: 'inline-block',
+              backgroundColor: '#9CAF88',
+              color: 'white',
+              padding: '0.5rem 1.5rem',
+              borderRadius: '20px',
+              fontSize: '0.95rem',
+              marginBottom: '1.5rem',
+              fontWeight: 500
+            }}>
+              from: {selectedMessage.from}
+            </div>
+
+            <h2 style={{ 
+              marginBottom: '1.5rem', 
+              paddingRight: '2rem',
+              fontSize: '2.5rem',
+              color: '#8B7355',
+              fontWeight: 600,
+              lineHeight: 1.2
+            }}>
+              {selectedMessage.subject}
+            </h2>
+
+            <div style={{
+              backgroundColor: 'white',
+              padding: '2rem',
+              borderRadius: '16px',
+              border: '2px solid #E8E3D8',
+              boxShadow: 'inset 0 2px 8px rgba(0,0,0,0.05)'
+            }}>
+              <p style={{ 
+                lineHeight: '1.8', 
+                color: '#5a4a3d',
+                fontSize: '1.3rem',
+                margin: 0
+              }}>
+                {selectedMessage.content}
+              </p>
+            </div>
 
             {showSeedAnimation && (
               <div style={{
@@ -181,7 +224,7 @@ export default function Dashboard() {
                 fontSize: '3rem',
                 pointerEvents: 'none'
               }}>
-                <img src="/small-seed.png" alt="seed" style={{ width: '1.7rem', height: '1.7rem', objectFit: 'contain' }} />
+                <img src="/small-seed.png" alt="seed" style={{ width: '3rem', height: '3rem', objectFit: 'contain' }} />
               </div>
             )}
           </div>
@@ -190,6 +233,8 @@ export default function Dashboard() {
 
       <style>
         {`
+          @import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;500;600;700&display=swap');
+          
           @keyframes seedFloat {
             0% {
               opacity: 1;

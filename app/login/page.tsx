@@ -48,7 +48,7 @@ export default function LoginPage() {
     <main className="min-h-screen flex items-center justify-center bg-[#f5f5f0] px-4">
       <div className="w-full max-w-md bg-white/70 rounded-3xl p-8 space-y-6 shadow-sm">
         <h1 className="text-3xl font-semibold text-center text-[#8B6F5B]">
-          Welcome back
+          Welcome back!
         </h1>
 
         <p className="text-sm text-center text-[#6f5a4d]">
