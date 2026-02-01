@@ -14,9 +14,9 @@ export default function Dashboard() {
   const [activeCategory, setActiveCategory] = useState('My Garden')
   
   // NEW: Add these states for matching functionality
-  const [userRole, setUserRole] = useState('mentor') // TODO: Fetch from database
-  const [isMatched, setIsMatched] = useState(false) // TODO: Fetch from database
-  const [isApproved, setIsApproved] = useState(true) // TODO: Fetch from database (for students)
+  const [userRole, setUserRole] = useState('mentor')
+  const [isMatched, setIsMatched] = useState(false)
+  const [isApproved, setIsApproved] = useState(true)
   const [availableStudents, setAvailableStudents] = useState([])
   const [loadingStudents, setLoadingStudents] = useState(false)
   const [matchingInProgress, setMatchingInProgress] = useState(false)
@@ -24,6 +24,7 @@ export default function Dashboard() {
   const [userProfile, setUserProfile] = useState(null)
   const [showComposeModal, setShowComposeModal] = useState(false)
   const [letterContent, setLetterContent] = useState('')
+  const [letterSubject, setLetterSubject] = useState('')
   const [sendingLetter, setSendingLetter] = useState(false)
   
   // Garden state
@@ -40,6 +41,7 @@ export default function Dashboard() {
   ])
 
   // Mailbox state
+  const [mailboxTab, setMailboxTab] = useState('received')
   const [messages, setMessages] = useState([
     { id: 0, isOpen: false, from: 'Dr. Sarah Johnson', subject: 'Welcome to the mentorship program!', content: 'Welcome to our mentorship program! I\'m excited to be your mentor and help you grow in your learning journey.' },
     { id: 1, isOpen: false, from: 'System', subject: 'You earned 3 seeds!', content: 'Congratulations! You\'ve earned 3 seeds for completing your first week. Plant them in your garden!' },
@@ -49,53 +51,34 @@ export default function Dashboard() {
     { id: 5, isOpen: true, from: 'System', subject: 'Weekly summary', content: 'Here\'s your weekly summary of activities and achievements.' },
   ])
 
+  const [sentMessages, setSentMessages] = useState([
+    { id: 0, isOpen: true, to: 'Dr. Sarah Johnson', subject: 'Thank you for mentoring me!', content: 'Thank you so much for being my mentor. I really appreciate your guidance and support!' },
+    { id: 1, isOpen: true, to: 'Dr. Sarah Johnson', subject: 'Question about marine biology', content: 'I had a question about the marine biology topic we discussed. Could you explain more about coral reef ecosystems?' },
+    { id: 2, isOpen: true, to: 'Community', subject: 'My garden progress', content: 'I wanted to share my garden progress with everyone. I\'ve planted 5 seeds and they\'re all growing well!' },
+  ])
+
   const [selectedMessage, setSelectedMessage] = useState(null)
   const [showSeedAnimation, setShowSeedAnimation] = useState(false)
 
- // NEW: Fetch user data on mount
 useEffect(() => {
   const fetchUserData = async () => {
     try {
       const response = await fetch('/api/me/profile')
       if (response.ok) {
         const profile = await response.json()
-        setUserProfile(profile)  // Add this line
+        setUserProfile(profile)
         setUserRole(profile.role)
         setIsMatched(profile.matched)
         setIsApproved(profile.approved)
         setSeeds(parseInt(profile.seed_count) || 3)
 
-        // ... rest of penpal fetching code
-      }
-    } catch (error) {
-      console.error('Error fetching user data:', error)
-    }
-  }
-  fetchUserData()
-}, [])
-
-// NEW: Fetch user data on mount
-useEffect(() => {
-  const fetchUserData = async () => {
-    try {
-      const response = await fetch('/api/me/profile')
-      if (response.ok) {
-        const profile = await response.json()
-        setUserRole(profile.role)
-        setIsMatched(profile.matched)
-        setIsApproved(profile.approved)
-        setSeeds(parseInt(profile.seed_count) || 3)
-
-        // If user is matched, fetch their penpal info
         if (profile.matched) {
           const matchResponse = await fetch('/api/match')
           if (matchResponse.ok) {
             const matchData = await matchResponse.json()
             if (matchData) {
-              // Get the penpal's ID (if you're mentor, get student; if student, get mentor)
               const penpalId = profile.role === 'mentor' ? matchData.student_id : matchData.mentor_id
               
-              // Fetch penpal's profile
               const penpalResponse = await fetch(`/api/profiles/${penpalId}`)
               if (penpalResponse.ok) {
                 const penpal = await penpalResponse.json()
@@ -112,14 +95,12 @@ useEffect(() => {
   fetchUserData()
 }, [])
 
-  // NEW: Fetch students when mentor views Find a Pen Pal
   useEffect(() => {
     if (activeCategory === 'Find a Pen Pal' && userRole === 'mentor' && !isMatched) {
       fetchAvailableStudents()
     }
   }, [activeCategory, userRole, isMatched])
 
-  // NEW: Fetch available students function
   const fetchAvailableStudents = async () => {
     setLoadingStudents(true)
     try {
@@ -135,7 +116,6 @@ useEffect(() => {
     }
   }
 
-  // NEW: Handle match creation
   const handleCreateMatch = async (studentId) => {
     if (matchingInProgress) return
     
@@ -199,18 +179,27 @@ useEffect(() => {
   }
 
   const toggleMessage = (messageId) => {
-    const message = messages.find(m => m.id === messageId)
+    const currentMessages = mailboxTab === 'received' ? messages : sentMessages
+    const message = currentMessages.find(m => m.id === messageId)
     
     if (message.isOpen) {
       setSelectedMessage(message)
       return
     }
 
-    setMessages(messages.map(m => 
-      m.id === messageId 
-        ? { ...m, isOpen: true }
-        : m
-    ))
+    if (mailboxTab === 'received') {
+      setMessages(messages.map(m => 
+        m.id === messageId 
+          ? { ...m, isOpen: true }
+          : m
+      ))
+    } else {
+      setSentMessages(sentMessages.map(m => 
+        m.id === messageId 
+          ? { ...m, isOpen: true }
+          : m
+      ))
+    }
 
     setSelectedMessage(message)
     setShowSeedAnimation(true)
@@ -231,6 +220,11 @@ useEffect(() => {
     return
   }
 
+  if (!letterSubject.trim()) {
+    alert('Please add a subject!')
+    return
+  }
+
   if (!penpalInfo?.id) {
     alert('No pen pal found!')
     return
@@ -245,13 +239,23 @@ useEffect(() => {
       },
       body: JSON.stringify({
         receiverId: penpalInfo.id,
+        subject: letterSubject,
         content: letterContent,
       }),
     })
 
     if (response.ok) {
+      setSentMessages([...sentMessages, {
+        id: sentMessages.length,
+        isOpen: true,
+        to: penpalInfo.full_name,
+        subject: letterSubject,
+        content: letterContent
+      }])
+      
       alert('Letter sent successfully!')
       setLetterContent('')
+      setLetterSubject('')
       setShowComposeModal(false)
     } else {
       const error = await response.json()
@@ -282,7 +286,6 @@ useEffect(() => {
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: '#f5f5f0' }}>
-    {/* NEW: Compose Letter Modal - ADD THIS ENTIRE BLOCK HERE */}
     {showComposeModal && (
       <div 
         style={{
@@ -346,6 +349,22 @@ useEffect(() => {
               ✕
             </button>
           </div>
+
+          <input
+            type="text"
+            value={letterSubject}
+            onChange={(e) => setLetterSubject(e.target.value)}
+            placeholder="Subject"
+            style={{
+              width: '100%',
+              padding: '0.75rem',
+              fontSize: '1rem',
+              borderRadius: '8px',
+              border: '2px solid #E8E3D8',
+              fontFamily: 'inherit',
+              marginBottom: '1rem'
+            }}
+          />
 
           <textarea
             value={letterContent}
@@ -489,7 +508,7 @@ useEffect(() => {
               marginBottom: '1.5rem',
               fontWeight: 500
             }}>
-              from: {selectedMessage.from}
+              {mailboxTab === 'received' ? `from: ${selectedMessage.from}` : `to: ${selectedMessage.to}`}
             </div>
 
             <h2 style={{ 
@@ -589,7 +608,6 @@ useEffect(() => {
           >
             Mailbox
           </button>
-          {/* Only show My Pen Pal tab for students or matched mentors */}
           {(userRole === 'student' || (userRole === 'mentor' && isMatched)) && (
             <button 
               onClick={() => setActiveCategory('My Mentor')}
@@ -604,7 +622,6 @@ useEffect(() => {
               My Pen Pal
             </button>
           )}
-          {/* NEW: Add Find a Pen Pal button for unmatched mentors */}
           {userRole === 'mentor' && !isMatched && (
             <button 
               onClick={() => setActiveCategory('Find a Pen Pal')}
@@ -827,9 +844,7 @@ useEffect(() => {
         
         {activeCategory === 'My Mentor' && (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-            {/* Show different content based on user role and status */}
             {userRole === 'student' && !isApproved ? (
-              // Student waiting for parent approval
               <div style={{ 
                 width: '100%',
                 maxWidth: '600px',
@@ -848,7 +863,6 @@ useEffect(() => {
                 </p>
               </div>
             ) : userRole === 'student' && !isMatched ? (
-              // Student approved but not matched yet
               <div style={{ 
                 width: '100%',
                 maxWidth: '600px',
@@ -866,7 +880,6 @@ useEffect(() => {
                 </p>
               </div>
             ) : (
-              // Matched user (student or mentor) - show pen pal info
               <div style={{ 
                 width: '100%',
                 maxWidth: '900px',
@@ -1001,6 +1014,68 @@ useEffect(() => {
         {activeCategory === 'Mailbox' && (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
             <div style={{ 
+              display: 'flex', 
+              gap: '2rem', 
+              marginBottom: '2rem',
+              borderBottom: '2px solid #e0e0e0',
+              paddingBottom: '1rem'
+            }}>
+              <button
+                onClick={() => setMailboxTab('received')}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  fontSize: '1.2rem',
+                  cursor: 'pointer',
+                  fontWeight: mailboxTab === 'received' ? 'bold' : 'normal',
+                  color: mailboxTab === 'received' ? '#333' : '#999',
+                  borderBottom: mailboxTab === 'received' ? '3px solid #9CAF88' : 'none',
+                  paddingBottom: '0.5rem'
+                }}
+              >
+                Received
+              </button>
+              <button
+                onClick={() => setMailboxTab('sent')}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  fontSize: '1.2rem',
+                  cursor: 'pointer',
+                  fontWeight: mailboxTab === 'sent' ? 'bold' : 'normal',
+                  color: mailboxTab === 'sent' ? '#333' : '#999',
+                  borderBottom: mailboxTab === 'sent' ? '3px solid #9CAF88' : 'none',
+                  paddingBottom: '0.5rem'
+                }}
+              >
+                Sent
+              </button>
+            </div>
+
+            {isMatched && penpalInfo && (
+              <div style={{ marginBottom: '2rem', width: '100%', maxWidth: '1200px', display: 'flex', justifyContent: 'flex-end' }}>
+                <button
+                  onClick={() => setShowComposeModal(true)}
+                  style={{
+                    padding: '0.75rem 1.5rem',
+                    backgroundColor: '#9CAF88',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '8px',
+                    fontSize: '1rem',
+                    cursor: 'pointer',
+                    fontWeight: 'bold',
+                    transition: 'background-color 0.2s'
+                  }}
+                  onMouseEnter={(e) => e.target.style.backgroundColor = '#8a9e78'}
+                  onMouseLeave={(e) => e.target.style.backgroundColor = '#9CAF88'}
+                >
+                  Send a Letter
+                </button>
+              </div>
+            )}
+
+            <div style={{ 
               display: 'grid', 
               gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))',
               gap: '2rem',
@@ -1008,7 +1083,7 @@ useEffect(() => {
               maxWidth: '1200px',
               padding: '1rem'
             }}>
-              {messages.map(message => (
+              {(mailboxTab === 'received' ? messages : sentMessages).map(message => (
                 <div
                   key={message.id}
                   onClick={() => toggleMessage(message.id)}
@@ -1055,7 +1130,7 @@ useEffect(() => {
                       marginBottom: '0.25rem',
                       color: '#333'
                     }}>
-                      From: {message.from}
+                      {mailboxTab === 'received' ? `From: ${message.from}` : `To: ${message.to}`}
                     </p>
                     <p style={{ 
                       fontSize: '0.85rem',
@@ -1069,45 +1144,17 @@ useEffect(() => {
               ))}
             </div>
 
-             {/* ADD THE BUTTON HERE - right after the closing </div> of the grid */}
-    {isMatched && penpalInfo && (
-      <div style={{ marginTop: '2rem', maxWidth: '1200px', width: '100%' }}>
-        <button
-          onClick={() => setShowComposeModal(true)}
-          style={{
-            padding: '1rem 2rem',
-            backgroundColor: '#9CAF88',
-            color: 'white',
-            border: 'none',
-            borderRadius: '8px',
-            fontSize: '1.2rem',
-            cursor: 'pointer',
-            fontWeight: 'bold',
-            width: '100%',
-            maxWidth: '400px',
-            transition: 'background-color 0.2s',
-            display: 'block',
-            margin: '0 auto'
-          }}
-          onMouseEnter={(e) => e.target.style.backgroundColor = '#8a9e78'}
-          onMouseLeave={(e) => e.target.style.backgroundColor = '#9CAF88'}
-        >
-          Write to Your Pen Pal!
-        </button>
-      </div>
-    )}
-
             <div style={{ marginTop: '3rem', padding: '1.5rem', backgroundColor: '#f9f9f9', borderRadius: '8px' }}>
               <h3 style={{ marginBottom: '1rem' }}>🧪 Demo Controls (for testing)</h3>
               <button 
                 onClick={() => {
-                  const newId = messages.length
-                  setMessages([...messages, {
+                  const newId = sentMessages.length
+                  setSentMessages([...sentMessages, {
                     id: newId,
-                    isOpen: false,
-                    from: 'Test Sender',
-                    subject: 'Test message #' + (newId + 1),
-                    content: 'This is a test message content. Opening this will give you a seed!'
+                    isOpen: true,
+                    to: 'Test Recipient',
+                    subject: 'Test sent message #' + (newId + 1),
+                    content: 'This is a test sent message content!'
                   }])
                 }}
                 style={{ 
@@ -1119,13 +1166,12 @@ useEffect(() => {
                   cursor: 'pointer' 
                 }}
               >
-                Add Test Message
+                Add Test Sent Message
               </button>
             </div>
           </div>
         )}
 
-        {/* NEW: Find a Pen Pal section */}
         {activeCategory === 'Find a Pen Pal' && userRole === 'mentor' && !isMatched && (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
             <h2 style={{ fontSize: '1.5rem', marginBottom: '1rem' }}>Find a Pen Pal</h2>
