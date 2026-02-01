@@ -148,7 +148,7 @@ export default function Dashboard() {
                 fontSize: '0.9rem',
                 textAlign: 'center'
               }}>
-                ⚠️ This message has already been opened
+                This message has already been opened
               </div>
             )}
 
@@ -198,7 +198,7 @@ export default function Dashboard() {
                 fontSize: '3rem',
                 pointerEvents: 'none'
               }}>
-                🌰
+                <img src="/small-seed.png" alt="seed" style={{ width: '1.7rem', height: '1.7rem', objectFit: 'contain' }} />
               </div>
             )}
           </div>
@@ -244,7 +244,7 @@ export default function Dashboard() {
               fontSize: '1rem'
             }}
           >
-            My Garden
+            Garden
           </button>
           <button 
             onClick={() => setActiveCategory('Mailbox')}
@@ -291,16 +291,51 @@ export default function Dashboard() {
         </div>
 
         {/* Seed counter */}
-        <div style={{ 
-          fontSize: '1.1rem', 
-          fontWeight: 'bold',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '0.5rem'
-        }}>
-          <span>🌰</span>
-          <span>Seeds: {seeds}</span>
-        </div>
+        {/* Top-right actions */}
+<div style={{ 
+  display: 'flex',
+  alignItems: 'center',
+  gap: '1rem'
+}}>
+  {/* Seed counter */}
+  <div style={{ 
+    fontSize: '1.1rem', 
+    fontWeight: 'bold',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.5rem'
+  }}>
+    <img 
+      src="/small-seed.png" 
+      alt="seed" 
+      style={{ width: '1.7rem', height: '1.7rem', objectFit: 'contain' }} 
+    />
+    <span>{seeds}</span>
+  </div>
+
+  {/* Logout */}
+  <button
+    onClick={() => {
+      // simple client-side logout for now
+      window.location.href = '/'
+    }}
+    style={{
+      background: 'none',
+      border: '1px solid #ccc',
+      borderRadius: '6px',
+      padding: '0.4rem 0.75rem',
+      cursor: 'pointer',
+      fontSize: '0.9rem',
+      color: '#333'
+    }}
+    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f5f5f5'}
+    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+  >
+    Log out
+  </button>
+</div>
+
+        
       </div>
 
       {/* Content Area */}
@@ -737,27 +772,6 @@ export default function Dashboard() {
                   />
                 </div>
 
-                {/* Guardian - Greyed out */}
-                <div style={{ marginBottom: '1rem' }}>
-                  <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold', fontSize: '0.9rem' }}>
-                    Guardian
-                  </label>
-                  <input 
-                    type="text"
-                    value="Jane Doe"
-                    disabled
-                    style={{
-                      width: '100%',
-                      padding: '0.75rem',
-                      borderRadius: '6px',
-                      border: '1px solid #ccc',
-                      backgroundColor: '#e9e9e9',
-                      color: '#888',
-                      fontSize: '1rem',
-                      cursor: 'not-allowed'
-                    }}
-                  />
-                </div>
 
                 {/* Hobbies & Interests - Editable */}
                 <div style={{ marginBottom: '1rem' }}>

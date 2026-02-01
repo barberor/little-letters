@@ -15,12 +15,12 @@ export default function Home() {
             fontFamily: 'ui-rounded, system-ui, -apple-system',
           }}
         >
-          Little Letters
+          <img src="/home-logo.png" alt="seed" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
         </h1>
 
         {/* Subtitle */}
         <p className="text-lg text-[#6f5a4d] max-w-md mx-auto">
-          A safe, thoughtful way to connect students, mentors, and families
+          A safe, thoughtful way to connect K-12 students, MSU mentors, and families
           through letters.
         </p>
 
@@ -33,7 +33,7 @@ export default function Home() {
           </Link>
 
           <Link href="/signup">
-            <button className="px-8 py-3 rounded-2xl text-lg font-medium bg-white text-[#8B6F5B] border border-[#d6cfc8] shadow-sm transition-all hover:scale-105 hover:shadow-md">
+            <button className="px-8 py-3 rounded-2xl text-lg font-medium bg-[#9CAF88] text-white border border-[#d6cfc8] shadow-sm transition-all hover:scale-105 hover:shadow-md">
               Sign up
             </button>
           </Link>
