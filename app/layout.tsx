@@ -2,6 +2,9 @@ import "./globals.css";
 
 export const metadata = {
   title: "Little Letters",
+  icons: {
+    icon: "/tab-icon.png"
+  },
   description:
     "Connecting K–12 students with MSU mentors through letters, creativity, and encouragement.",
 };
