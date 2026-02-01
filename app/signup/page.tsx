@@ -5,11 +5,10 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "@/lib/supabaseClient";
 
-type Role = "parent" | "teacher" | "student" | "mentor";
+type Role = "parent" | "student" | "mentor";
 
 const roleLabels: Record<Role, string> = {
   parent: "Parent / Guardian",
-  teacher: "Teacher",
   student: "Student",
   mentor: "MSU Student Mentor",
 };

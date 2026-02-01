@@ -555,21 +555,6 @@ useEffect(() => {
             }}
             onClick={(e) => e.stopPropagation()}
           >
-            {selectedMessage.isOpen && (
-              <div style={{
-                backgroundColor: '#fff9e6',
-                border: '1px solid #d4a574',
-                borderRadius: '12px',
-                padding: '0.3rem',
-                marginBottom: '1.5rem',
-                color: '#8B7355',
-                fontSize: '1.1rem',
-                textAlign: 'center',
-                fontWeight: 500
-              }}>
-                This message has already been opened
-              </div>
-            )}
 
             <button
               onClick={closeMessage}
@@ -965,7 +950,7 @@ useEffect(() => {
                     justifyContent: 'center'
                   }}>
                     <img 
-                      src="/mentor_demo.jpg" 
+                      src="/mentor_demo.png" 
                       alt="Mentor" 
                       style={{ 
                         width: '100%', 
@@ -1463,7 +1448,7 @@ useEffect(() => {
                       textAlign: 'center'
                     }}>
                       <p style={{ fontSize: '0.8rem', color: '#666', marginBottom: '0.25rem' }}>Total Letters Sent</p>
-                      <p style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#333' }}>12</p>
+                      <p style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#333' }}>1</p>
                     </div>
                     
                     <div style={{ 
@@ -1473,7 +1458,7 @@ useEffect(() => {
                       textAlign: 'center'
                     }}>
                       <p style={{ fontSize: '0.8rem', color: '#666', marginBottom: '0.25rem' }}>Total Letters Received</p>
-                      <p style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#333' }}>18</p>
+                      <p style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#333' }}>1</p>
                     </div>
 
                     <div style={{ 
