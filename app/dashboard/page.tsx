@@ -1468,7 +1468,7 @@ useEffect(() => {
                       textAlign: 'center'
                     }}>
                       <p style={{ fontSize: '0.8rem', color: '#666', marginBottom: '0.25rem' }}>Date Joined</p>
-                      <p style={{ fontSize: '0.95rem', fontWeight: 'bold', color: '#333' }}>January 15, 2026</p>
+                      <p style={{ fontSize: '0.95rem', fontWeight: 'bold', color: '#333' }}>February 1, 2026</p>
                     </div>
                   </div>
                 </div>
