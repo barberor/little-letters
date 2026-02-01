@@ -19,7 +19,8 @@ export async function GET() {
       created_at,
       sender_id,
       receiver_id,
-      sender:profiles!letters_sender_id_fkey(full_name)
+      sender:profiles!letters_sender_id_fkey(full_name),
+      receiver:profiles!letters_receiver_id_fkey(full_name)
     `)
     .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`)
     .order('created_at', { ascending: false })
@@ -37,6 +38,7 @@ export async function GET() {
     sender_id: letter.sender_id,
     receiver_id: letter.receiver_id,
     sender_name: letter.sender_id === user.id ? 'You' : letter.sender?.full_name,
+    receiver_name: letter.receiver_id === user.id ? 'You' : letter.receiver?.full_name,
     read: letter.sender_id !== user.id
   }))
 
