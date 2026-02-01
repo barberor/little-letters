@@ -81,7 +81,6 @@ export default function SignUpPage() {
         full_name: fullName,
 
         // relationships
-        parent_id: null, // NEVER self-reference
         child_email: role === "parent" ? childEmail : null,
 
         // student-specific
