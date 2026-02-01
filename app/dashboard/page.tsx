@@ -823,6 +823,31 @@ useEffect(() => {
                 backgroundPosition: 'center',
                 overflow: 'hidden',
               }}>
+                {/* Instructional text */}
+                <div style={{
+                  position: 'absolute',
+                  top: '10%',
+                  left: '50%',
+                  transform: 'translateX(-50%)',
+                  textAlign: 'center',
+                  backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                  padding: '1rem 2rem',
+                  borderRadius: '12px',
+                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+                  maxWidth: '600px'
+                }}>
+                  <p style={{
+                    fontSize: '1.1rem',
+                    color: '#5a4a3d',
+                    margin: 0,
+                    lineHeight: '1.6',
+                    fontWeight: '400',
+                    letterSpacing: '0.3px'
+                  }}>
+                    Chat with your pen pal to receive seeds! Plant them in your garden and watch your flowers grow.
+                  </p>
+                </div>
+
                 <div style={{
                   position: 'absolute',
                   top: '75%',
