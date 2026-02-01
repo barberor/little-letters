@@ -95,6 +95,44 @@ useEffect(() => {
     }
   }, [activeCategory, userRole, isMatched])
 
+  // Auto-grow plants every 5 seconds
+  useEffect(() => {
+    const growthInterval = setInterval(() => {
+      setPlots(currentPlots => 
+        currentPlots.map(plot => {
+          // Progress through stages: seed -> sprouting -> growing -> grown
+          if (plot.stage === 'seed') {
+            return { ...plot, stage: 'sprouting' }
+          } else if (plot.stage === 'sprouting') {
+            return { ...plot, stage: 'growing' }
+          } else if (plot.stage === 'growing') {
+            return { ...plot, stage: 'grown' }
+          }
+          return plot
+        })
+      )
+    }, 5000) // 5 seconds
+
+    return () => clearInterval(growthInterval)
+  }, [])
+
+  // Auto-grow plants every 5 seconds
+  useEffect(() => {
+    const growthInterval = setInterval(() => {
+      setPlots(currentPlots => 
+        currentPlots.map(plot => {
+          if (plot.stage === 'empty') return plot
+          if (plot.stage === 'seed') return { ...plot, stage: 'sprouting' }
+          if (plot.stage === 'sprouting') return { ...plot, stage: 'growing' }
+          if (plot.stage === 'growing') return { ...plot, stage: 'grown' }
+          return plot // already grown
+        })
+      )
+    }, 5000) // 5 seconds
+
+    return () => clearInterval(growthInterval)
+  }, [])
+
   // NEW: Fetch letters from database
   const fetchLetters = async () => {
     setLoadingMessages(true)
@@ -218,7 +256,7 @@ useEffect(() => {
     setSeeds(seeds - 1)
     setPlots(plots.map(p => 
       p.id === plotId 
-        ? { ...p, stage: 'sprouting', plantedAt: Date.now() }
+        ? { ...p, stage: 'seed', plantedAt: Date.now() }
         : p
     ))
   }
@@ -313,18 +351,35 @@ useEffect(() => {
 }
 
   const getPlotVisual = (stage) => {
-    switch(stage) {
-      case 'empty':
-        return '➕'
-      case 'sprouting':
-        return <img src="/sprout.png" alt="Sprout" style={{ width: '80%', height: '80%', objectFit: 'contain' }} />
-      case 'growing':
-        return <img src="/growing.png" alt="Growing" style={{ width: '80%', height: '80%', objectFit: 'contain' }} />
-      case 'grown':
-        return <img src="/grown.png" alt="Grown" style={{ width: '80%', height: '80%', objectFit: 'contain' }} />
-      default:
-        return '➕'
-    }
+    const content = (() => {
+      switch(stage) {
+        case 'empty':
+          return '➕'
+        case 'seed':
+          return <img src="/small-seed.png" alt="Seed" style={{ width: '2rem', height: '2rem', objectFit: 'contain' }} />
+        case 'sprouting':
+          return <img src="/sprout-sun.png" alt="Sprout" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+        case 'growing':
+          return <img src="/growing-sun.png" alt="Growing" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+        case 'grown':
+          return <img src="/grown-sun.png" alt="Grown" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+        default:
+          return '➕'
+      }
+    })()
+
+    return (
+      <div style={{ 
+        width: '100%', 
+        height: '100%', 
+        aspectRatio: '1',
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'center' 
+      }}>
+        {content}
+      </div>
+    )
   }
 
   return (
@@ -749,140 +804,74 @@ useEffect(() => {
         </div>
       </div>
 
-      <div style={{ flex: 1, padding: '2rem' }}>
+      <div style={{ flex: 1, padding: activeCategory === 'My Garden' ? 0 : '2rem' }}>
         {activeCategory === 'My Garden' && (
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-            <p style={{ marginBottom: '2rem', color: '#666' }}>
-              Click on an empty plot (➕) to plant a seed!
-            </p>
-
+          <div style={{ 
+            position: 'relative',
+            width: '100%',
+            height: 'calc(100vh - 100px)',
+            display: 'flex',
+            flexDirection: 'column'
+          }}>
             <div style={{ 
-                display: 'grid', 
-                gridTemplateColumns: 'repeat(4, 1fr)',
-                gap: '1rem',
+                position: 'relative',
                 width: '100%',
-                maxWidth: '680px',
-                padding: '1.5rem',
-                backgroundColor: '#7cb342',
-                borderRadius: '16px',
-                border: '3px solid rgb(151, 95, 62)',
-                boxSizing: 'border-box'
+                height: '100%',
+                backgroundImage: 'url(/garden-background.png)',
+                backgroundSize: 'cover',
+                backgroundRepeat: 'no-repeat',
+                backgroundPosition: 'center',
+                overflow: 'hidden',
               }}>
-                {plots.map(plot => {
-                  return (
-                    <div
-                      key={plot.id}
-                      onClick={() => plantSeed(plot.id)}
-                      style={{
-                        width: '100%',
-                        aspectRatio: '1',
-                        maxWidth: '150px',
-                        maxHeight: '150px',
-                        backgroundColor: 'rgb(151, 95, 62)',
-                        border: `3px solid rgb(151, 95, 62)`,
-                        borderRadius: '12px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontSize: 'clamp(2rem, 5vw, 3rem)',
-                        cursor: plot.stage === 'empty' ? 'pointer' : 'default',
-                        transition: 'all 0.3s',
-                        opacity: plot.stage === 'empty' ? 0.6 : 1,
-                        boxSizing: 'border-box'
-                      }}
-                      onMouseEnter={(e) => {
-                        if (plot.stage === 'empty') {
-                          e.currentTarget.style.opacity = '1'
-                          e.currentTarget.style.transform = 'scale(1.02)'
-                        }
-                      }}
-                      onMouseLeave={(e) => {
-                        if (plot.stage === 'empty') {
-                          e.currentTarget.style.opacity = '0.6'
-                          e.currentTarget.style.transform = 'scale(1)'
-                        }
-                      }}
-                    >
-                      {getPlotVisual(plot.stage)}
-                    </div>
-                  )
-                })}
-              </div>
-
-              <div style={{ marginTop: '3rem', padding: '1.5rem', backgroundColor: '#f9f9f9', borderRadius: '8px' }}>
-                <h3 style={{ marginBottom: '1rem' }}>🧪 Demo Controls (for testing)</h3>
-                <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-                  <button 
-                    onClick={() => setSeeds(seeds + 1)}
-                    style={{ 
-                      padding: '0.5rem 1rem', 
-                      backgroundColor: '#4f8f63', 
-                      color: 'white', 
-                      border: 'none', 
-                      borderRadius: '6px', 
-                      cursor: 'pointer' 
-                    }}
-                  >
-                    Add Seed
-                  </button>
-                  <button 
-                    onClick={() => {
-                      setPlots(plots.map(p => 
-                        p.stage === 'sprouting' ? { ...p, stage: 'growing' } : p
-                      ))
-                    }}
-                    style={{ 
-                      padding: '0.5rem 1rem', 
-                      backgroundColor: '#4f8f63', 
-                      color: 'white', 
-                      border: 'none', 
-                      borderRadius: '6px', 
-                      cursor: 'pointer' 
-                    }}
-                  >
-                    Grow Sprouts
-                  </button>
-                  <button 
-                    onClick={() => {
-                      setPlots(plots.map(p => 
-                        p.stage === 'growing' ? { ...p, stage: 'grown' } : p
-                      ))
-                    }}
-                    style={{ 
-                      padding: '0.5rem 1rem', 
-                      backgroundColor: '#4f8f63', 
-                      color: 'white', 
-                      border: 'none', 
-                      borderRadius: '6px', 
-                      cursor: 'pointer' 
-                    }}
-                  >
-                    Bloom Plants
-                  </button>
-                  <button 
-                    onClick={() => {
-                      setPlots(plots.map(p => ({ ...p, stage: 'empty', plantedAt: null })))
-                      setSeeds(3)
-                    }}
-                    style={{ 
-                      padding: '0.5rem 1rem', 
-                      backgroundColor: '#666', 
-                      color: 'white', 
-                      border: 'none', 
-                      borderRadius: '6px', 
-                      cursor: 'pointer' 
-                    }}
-                  >
-                    Reset Garden
-                  </button>
+                <div style={{
+                  position: 'absolute',
+                  top: '75%',
+                  left: '50%',
+                  transform: 'translate(-50%, -50%)',
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(4, 1fr)',
+                  gridTemplateRows: 'repeat(2, 1fr)',
+                  gap: '1.5rem',
+                  width: '45%',
+                  maxWidth: '700px',
+                  aspectRatio: '2',
+                }}>
+                  {plots.slice(0, 8).map(plot => {
+                    return (
+                      <div
+                        key={plot.id}
+                        onClick={() => plantSeed(plot.id)}
+                        style={{
+                          width: '100%',
+                          height: '100%',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontSize: 'clamp(3rem, 6vw, 5rem)',
+                          cursor: plot.stage === 'empty' ? 'pointer' : 'default',
+                          transition: 'all 0.3s',
+                          opacity: plot.stage === 'empty' ? 0.7 : 1,
+                        }}
+                        onMouseEnter={(e) => {
+                          if (plot.stage === 'empty') {
+                            e.currentTarget.style.opacity = '1'
+                            e.currentTarget.style.transform = 'scale(1.1)'
+                          }
+                        }}
+                        onMouseLeave={(e) => {
+                          if (plot.stage === 'empty') {
+                            e.currentTarget.style.opacity = '0.7'
+                            e.currentTarget.style.transform = 'scale(1)'
+                          }
+                        }}
+                      >
+                        {getPlotVisual(plot.stage)}
+                      </div>
+                    )
+                  })}
                 </div>
-                <p style={{ marginTop: '1rem', fontSize: '0.9rem', color: '#666' }}>
-                  These buttons simulate growth stages. Later, you'll replace this with actual timers.
-                </p>
               </div>
           </div>
-
-          
         )}
         
         {activeCategory === 'My Mentor' && (
@@ -1064,45 +1053,55 @@ useEffect(() => {
               <>
                 <div style={{ 
                   display: 'flex', 
-                  gap: '2rem', 
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
                   marginBottom: '2rem',
+                  width: '100%',
+                  maxWidth: '1200px',
+                  paddingLeft: '1rem',
+                  paddingRight: '1rem',
                   borderBottom: '2px solid #e0e0e0',
                   paddingBottom: '1rem'
                 }}>
-                  <button
-                    onClick={() => setMailboxTab('received')}
-                    style={{
-                      background: 'none',
-                      border: 'none',
-                      fontSize: '1.2rem',
-                      cursor: 'pointer',
-                      fontWeight: mailboxTab === 'received' ? 'bold' : 'normal',
-                      color: mailboxTab === 'received' ? '#333' : '#999',
-                      borderBottom: mailboxTab === 'received' ? '3px solid #9CAF88' : 'none',
-                      paddingBottom: '0.5rem'
-                    }}
-                  >
-                    Received
-                  </button>
-                  <button
-                    onClick={() => setMailboxTab('sent')}
-                    style={{
-                      background: 'none',
-                      border: 'none',
-                      fontSize: '1.2rem',
-                      cursor: 'pointer',
-                      fontWeight: mailboxTab === 'sent' ? 'bold' : 'normal',
-                      color: mailboxTab === 'sent' ? '#333' : '#999',
-                      borderBottom: mailboxTab === 'sent' ? '3px solid #9CAF88' : 'none',
-                      paddingBottom: '0.5rem'
-                    }}
-                  >
-                    Sent
-                  </button>
-                </div>
+                  <div style={{ 
+                    display: 'flex', 
+                    gap: '2rem'
+                  }}>
+                    <button
+                      onClick={() => setMailboxTab('received')}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        fontSize: '1.2rem',
+                        cursor: 'pointer',
+                        fontWeight: mailboxTab === 'received' ? 'bold' : 'normal',
+                        color: mailboxTab === 'received' ? '#333' : '#999',
+                        borderBottom: mailboxTab === 'received' ? '3px solid #9CAF88' : 'none',
+                        paddingBottom: '0.5rem',
+                        marginBottom: '-1rem'
+                      }}
+                    >
+                      Received
+                    </button>
+                    <button
+                      onClick={() => setMailboxTab('sent')}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        fontSize: '1.2rem',
+                        cursor: 'pointer',
+                        fontWeight: mailboxTab === 'sent' ? 'bold' : 'normal',
+                        color: mailboxTab === 'sent' ? '#333' : '#999',
+                        borderBottom: mailboxTab === 'sent' ? '3px solid #9CAF88' : 'none',
+                        paddingBottom: '0.5rem',
+                        marginBottom: '-1rem'
+                      }}
+                    >
+                      Sent
+                    </button>
+                  </div>
 
-                {isMatched && penpalInfo && (
-                  <div style={{ marginBottom: '2rem', width: '100%', maxWidth: '1200px', display: 'flex', justifyContent: 'flex-end' }}>
+                  {isMatched && penpalInfo && (
                     <button
                       onClick={() => setShowComposeModal(true)}
                       style={{
@@ -1121,8 +1120,8 @@ useEffect(() => {
                     >
                       Send a Letter
                     </button>
-                  </div>
-                )}
+                  )}
+                </div>
 
                 <div style={{ 
                   display: 'grid', 
@@ -1159,8 +1158,8 @@ useEffect(() => {
                         justifyContent: 'center'
                       }}>
                         <img 
-                          src={message.isOpen ? '/envelope-open.png' : '/envelope-closed.png'} 
-                          alt={message.isOpen ? 'Open envelope' : 'Closed envelope'}
+                          src={mailboxTab === 'sent' ? '/envelope-sent.png' : (message.isOpen ? '/envelope-open.png' : '/envelope-closed.png')}
+                          alt={mailboxTab === 'sent' ? 'Sent envelope' : (message.isOpen ? 'Open envelope' : 'Closed envelope')}
                           style={{ 
                             width: '100%', 
                             height: '100%', 
