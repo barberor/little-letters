@@ -15,7 +15,7 @@ export default function Home() {
             fontFamily: 'ui-rounded, system-ui, -apple-system',
           }}
         >
-          Little Letters
+          <img src="/home-logo.png" alt="seed" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
         </h1>
 
         {/* Subtitle */}

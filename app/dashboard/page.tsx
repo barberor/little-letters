@@ -148,7 +148,7 @@ export default function Dashboard() {
                 fontSize: '0.9rem',
                 textAlign: 'center'
               }}>
-                ⚠️ This message has already been opened
+                This message has already been opened
               </div>
             )}
 
@@ -198,7 +198,7 @@ export default function Dashboard() {
                 fontSize: '3rem',
                 pointerEvents: 'none'
               }}>
-                🌰
+                <img src="/small-seed.png" alt="seed" style={{ width: '1.7rem', height: '1.7rem', objectFit: 'contain' }} />
               </div>
             )}
           </div>
@@ -244,7 +244,7 @@ export default function Dashboard() {
               fontSize: '1rem'
             }}
           >
-            My Garden
+            Garden
           </button>
           <button 
             onClick={() => setActiveCategory('Mailbox')}
@@ -298,7 +298,9 @@ export default function Dashboard() {
           alignItems: 'center',
           gap: '0.5rem'
         }}>
-          <span>🌰</span>
+          <span>
+            <img src="/small-seed.png" alt="seed" style={{ width: '1.7rem', height: '1.7rem', objectFit: 'contain' }} />
+          </span>
           <span>Seeds: {seeds}</span>
         </div>
       </div>
