@@ -20,13 +20,17 @@ export default function Dashboard() {
 
   // Mailbox state
   const [messages, setMessages] = useState([
-    { id: 0, isOpen: false, from: 'Dr. Sarah Johnson', subject: 'Welcome to the mentorship program!' },
-    { id: 1, isOpen: false, from: 'System', subject: 'You earned 3 seeds!' },
-    { id: 2, isOpen: true, from: 'Dr. Sarah Johnson', subject: 'Great progress this week' },
-    { id: 3, isOpen: false, from: 'Community', subject: 'New achievement unlocked' },
-    { id: 4, isOpen: false, from: 'Dr. Sarah Johnson', subject: 'Tips for your garden' },
-    { id: 5, isOpen: true, from: 'System', subject: 'Weekly summary' },
+    { id: 0, isOpen: false, from: 'Dr. Sarah Johnson', subject: 'Welcome to the mentorship program!', content: 'Welcome to our mentorship program! I\'m excited to be your mentor and help you grow in your learning journey.' },
+    { id: 1, isOpen: false, from: 'System', subject: 'You earned 3 seeds!', content: 'Congratulations! You\'ve earned 3 seeds for completing your first week. Plant them in your garden!' },
+    { id: 2, isOpen: true, from: 'Dr. Sarah Johnson', subject: 'Great progress this week', content: 'I\'ve noticed your great progress this week. Keep up the excellent work!' },
+    { id: 3, isOpen: false, from: 'Community', subject: 'New achievement unlocked', content: 'You\'ve unlocked a new achievement! Your dedication is paying off.' },
+    { id: 4, isOpen: false, from: 'Dr. Sarah Johnson', subject: 'Tips for your garden', content: 'Here are some tips to help your garden flourish. Remember to check on your plants regularly!' },
+    { id: 5, isOpen: true, from: 'System', subject: 'Weekly summary', content: 'Here\'s your weekly summary of activities and achievements.' },
   ])
+
+  // Modal state for viewing messages
+  const [selectedMessage, setSelectedMessage] = useState(null)
+  const [showSeedAnimation, setShowSeedAnimation] = useState(false)
 
   // Plant a seed in a plot
   const plantSeed = (plotId) => {
@@ -52,11 +56,37 @@ export default function Dashboard() {
 
   // Toggle message open/closed
   const toggleMessage = (messageId) => {
+    const message = messages.find(m => m.id === messageId)
+    
+    if (message.isOpen) {
+      // Message already opened - just show it without seed animation
+      setSelectedMessage(message)
+      return
+    }
+
+    // Mark message as opened
     setMessages(messages.map(m => 
       m.id === messageId 
-        ? { ...m, isOpen: !m.isOpen }
+        ? { ...m, isOpen: true }
         : m
     ))
+
+    // Show the message popup
+    setSelectedMessage(message)
+
+    // Show seed animation and add seed
+    setShowSeedAnimation(true)
+    setSeeds(seeds + 1)
+
+    // Hide seed animation after 2 seconds
+    setTimeout(() => {
+      setShowSeedAnimation(false)
+    }, 2000)
+  }
+
+  // Close the message popup
+  const closeMessage = () => {
+    setSelectedMessage(null)
   }
 
   // Get visual representation based on stage
@@ -77,13 +107,130 @@ export default function Dashboard() {
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+      {/* Message Popup Modal */}
+      {selectedMessage && (
+        <div 
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000
+          }}
+          onClick={closeMessage}
+        >
+          <div 
+            style={{
+              backgroundColor: 'white',
+              borderRadius: '12px',
+              padding: '2rem',
+              maxWidth: '600px',
+              width: '90%',
+              position: 'relative',
+              boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Already opened banner */}
+            {selectedMessage.isOpen && (
+              <div style={{
+                backgroundColor: '#fff3cd',
+                border: '1px solid #ffc107',
+                borderRadius: '6px',
+                padding: '0.75rem',
+                marginBottom: '1rem',
+                color: '#856404',
+                fontSize: '0.9rem',
+                textAlign: 'center'
+              }}>
+                ⚠️ This message has already been opened
+              </div>
+            )}
+
+            {/* Close button */}
+            <button
+              onClick={closeMessage}
+              style={{
+                position: 'absolute',
+                top: '1rem',
+                right: '1rem',
+                background: 'none',
+                border: 'none',
+                fontSize: '1.5rem',
+                cursor: 'pointer',
+                color: '#666',
+                width: '30px',
+                height: '30px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                borderRadius: '50%',
+                transition: 'background-color 0.2s'
+              }}
+              onMouseEnter={(e) => e.target.style.backgroundColor = '#f0f0f0'}
+              onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
+            >
+              ✕
+            </button>
+
+            {/* Message content */}
+            <h2 style={{ marginBottom: '1rem', paddingRight: '2rem' }}>{selectedMessage.subject}</h2>
+            <p style={{ color: '#666', marginBottom: '1.5rem', fontSize: '0.9rem' }}>
+              From: {selectedMessage.from}
+            </p>
+            <p style={{ lineHeight: '1.6', color: '#333' }}>
+              {selectedMessage.content}
+            </p>
+
+            {/* Seed animation */}
+            {showSeedAnimation && (
+              <div style={{
+                position: 'absolute',
+                top: '50%',
+                left: '50%',
+                transform: 'translate(-50%, -50%)',
+                animation: 'seedFloat 2s ease-out',
+                fontSize: '3rem',
+                pointerEvents: 'none'
+              }}>
+                🌰
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      <style>
+        {`
+          @keyframes seedFloat {
+            0% {
+              opacity: 1;
+              transform: translate(-50%, -50%) scale(0.5);
+            }
+            50% {
+              transform: translate(-50%, -100%) scale(1.2);
+            }
+            100% {
+              opacity: 0;
+              transform: translate(-50%, -150%) scale(1);
+            }
+          }
+        `}
+      </style>
+
       {/* Toolbar */}
       <div style={{ 
         borderBottom: '1px solid #ccc', 
         padding: '1rem',
         display: 'flex',
         justifyContent: 'space-between',
-        alignItems: 'center'
+        alignItems: 'center',
+        position: 'relative'
       }}>
         {/* Navigation buttons */}
         <div style={{ display: 'flex', gap: '2rem' }}>
@@ -123,6 +270,24 @@ export default function Dashboard() {
           >
             My Account
           </button>
+        </div>
+
+        {/* Centered Logo */}
+        <div style={{
+          position: 'absolute',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          display: 'flex',
+          alignItems: 'center'
+        }}>
+          <img 
+            src="/toolbar-logo.png" 
+            alt="Logo" 
+            style={{ 
+              height: '40px',
+              objectFit: 'contain'
+            }} 
+          />
         </div>
 
         {/* Seed counter */}
@@ -407,7 +572,7 @@ export default function Dashboard() {
             {/* Envelope Grid */}
             <div style={{ 
               display: 'grid', 
-              gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))',
               gap: '2rem',
               width: '100%',
               maxWidth: '1200px',
@@ -434,15 +599,11 @@ export default function Dashboard() {
                 >
                   {/* Envelope Image */}
                   <div style={{
-                    width: '200px',
-                    height: '150px',
-                    backgroundColor: message.isOpen ? '#f0f0f0' : '#fff3e0',
-                    border: '2px solid #ccc',
-                    borderRadius: '8px',
+                    width: '250px',
+                    height: '200px',
                     display: 'flex',
                     alignItems: 'center',
-                    justifyContent: 'center',
-                    overflow: 'hidden'
+                    justifyContent: 'center'
                   }}>
                     <img 
                       src={message.isOpen ? '/envelope-open.png' : '/envelope-closed.png'} 
@@ -490,7 +651,8 @@ export default function Dashboard() {
                     id: newId,
                     isOpen: false,
                     from: 'Test Sender',
-                    subject: 'Test message #' + (newId + 1)
+                    subject: 'Test message #' + (newId + 1),
+                    content: 'This is a test message content. Opening this will give you a seed!'
                   }])
                 }}
                 style={{ 
@@ -509,9 +671,212 @@ export default function Dashboard() {
         )}
         
         {activeCategory === 'My Account' && (
-          <div>
-            <h1>My Account</h1>
-            <p>Your account settings go here</p>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
+            <h1 style={{ marginBottom: '2rem' }}>My Account</h1>
+            
+            {/* Top Row - Account Info and Statistics */}
+            <div style={{ 
+              display: 'flex',
+              gap: '2rem',
+              width: '100%',
+              maxWidth: '1200px',
+              alignItems: 'flex-start',
+              marginBottom: '2rem'
+            }}>
+              {/* Left Side - Account Information */}
+              <div style={{ 
+                flex: 1,
+                backgroundColor: '#f9f9f9',
+                borderRadius: '12px',
+                padding: '2rem',
+                border: '1px solid #e0e0e0'
+              }}>
+                <h2 style={{ marginBottom: '1.5rem', fontSize: '1.3rem' }}>Account Information</h2>
+                
+                {/* Name - Greyed out */}
+                <div style={{ marginBottom: '1rem' }}>
+                  <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold', fontSize: '0.9rem' }}>
+                    Name
+                  </label>
+                  <input 
+                    type="text"
+                    value="John Doe"
+                    disabled
+                    style={{
+                      width: '100%',
+                      padding: '0.75rem',
+                      borderRadius: '6px',
+                      border: '1px solid #ccc',
+                      backgroundColor: '#e9e9e9',
+                      color: '#888',
+                      fontSize: '1rem',
+                      cursor: 'not-allowed'
+                    }}
+                  />
+                </div>
+
+                {/* Email - Greyed out */}
+                <div style={{ marginBottom: '1rem' }}>
+                  <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold', fontSize: '0.9rem' }}>
+                    Email
+                  </label>
+                  <input 
+                    type="email"
+                    value="johndoe@example.com"
+                    disabled
+                    style={{
+                      width: '100%',
+                      padding: '0.75rem',
+                      borderRadius: '6px',
+                      border: '1px solid #ccc',
+                      backgroundColor: '#e9e9e9',
+                      color: '#888',
+                      fontSize: '1rem',
+                      cursor: 'not-allowed'
+                    }}
+                  />
+                </div>
+
+                {/* Guardian - Greyed out */}
+                <div style={{ marginBottom: '1rem' }}>
+                  <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold', fontSize: '0.9rem' }}>
+                    Guardian
+                  </label>
+                  <input 
+                    type="text"
+                    value="Jane Doe"
+                    disabled
+                    style={{
+                      width: '100%',
+                      padding: '0.75rem',
+                      borderRadius: '6px',
+                      border: '1px solid #ccc',
+                      backgroundColor: '#e9e9e9',
+                      color: '#888',
+                      fontSize: '1rem',
+                      cursor: 'not-allowed'
+                    }}
+                  />
+                </div>
+
+                {/* Hobbies & Interests - Editable */}
+                <div style={{ marginBottom: '1rem' }}>
+                  <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold', fontSize: '0.9rem' }}>
+                    Hobbies & Interests
+                  </label>
+                  <textarea 
+                    placeholder="Enter your hobbies and interests..."
+                    rows="4"
+                    style={{
+                      width: '100%',
+                      padding: '0.75rem',
+                      borderRadius: '6px',
+                      border: '1px solid #ccc',
+                      backgroundColor: 'white',
+                      fontSize: '1rem',
+                      resize: 'vertical',
+                      fontFamily: 'inherit'
+                    }}
+                  />
+                </div>
+              </div>
+
+              {/* Right Side - Statistics */}
+              <div style={{ 
+                width: '400px',
+                backgroundColor: '#f9f9f9',
+                borderRadius: '12px',
+                padding: '2rem',
+                border: '1px solid #e0e0e0'
+              }}>
+                <h2 style={{ marginBottom: '1.5rem', fontSize: '1.3rem' }}>Statistics</h2>
+                
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                  <div style={{ 
+                    backgroundColor: 'white', 
+                    padding: '1.5rem', 
+                    borderRadius: '8px',
+                    textAlign: 'center'
+                  }}>
+                    <p style={{ fontSize: '0.9rem', color: '#666', marginBottom: '0.5rem' }}>Total Letters Sent</p>
+                    <p style={{ fontSize: '2rem', fontWeight: 'bold', color: '#333' }}>12</p>
+                  </div>
+                  
+                  <div style={{ 
+                    backgroundColor: 'white', 
+                    padding: '1.5rem', 
+                    borderRadius: '8px',
+                    textAlign: 'center'
+                  }}>
+                    <p style={{ fontSize: '0.9rem', color: '#666', marginBottom: '0.5rem' }}>Total Letters Received</p>
+                    <p style={{ fontSize: '2rem', fontWeight: 'bold', color: '#333' }}>18</p>
+                  </div>
+
+                  <div style={{ 
+                    backgroundColor: 'white', 
+                    padding: '1.5rem', 
+                    borderRadius: '8px',
+                    textAlign: 'center'
+                  }}>
+                    <p style={{ fontSize: '0.9rem', color: '#666', marginBottom: '0.5rem' }}>Date Joined</p>
+                    <p style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#333' }}>January 15, 2026</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Bottom Section - Account Actions */}
+            <div style={{ 
+              width: '100%',
+              maxWidth: '1200px',
+              backgroundColor: '#f9f9f9',
+              borderRadius: '12px',
+              padding: '2rem',
+              border: '1px solid #e0e0e0'
+            }}>
+              <h2 style={{ marginBottom: '1.5rem', fontSize: '1.3rem' }}>Account Actions</h2>
+              
+              <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+                <button style={{
+                  padding: '0.75rem 1.5rem',
+                  backgroundColor: '#4f8f63',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '6px',
+                  fontSize: '1rem',
+                  cursor: 'pointer',
+                  fontWeight: 'bold'
+                }}>
+                  Reset Password
+                </button>
+
+                <button style={{
+                  padding: '0.75rem 1.5rem',
+                  backgroundColor: '#4f8f63',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '6px',
+                  fontSize: '1rem',
+                  cursor: 'pointer',
+                  fontWeight: 'bold'
+                }}>
+                  Reset Email
+                </button>
+
+                <button style={{
+                  padding: '0.75rem 1.5rem',
+                  backgroundColor: 'transparent',
+                  color: '#ff0000',
+                  border: '2px solid #ff0000',
+                  borderRadius: '6px',
+                  fontSize: '1rem',
+                  cursor: 'pointer',
+                  fontWeight: 'bold'
+                }}>
+                  DELETE ACCOUNT
+                </button>
+              </div>
+            </div>
           </div>
         )}
       </div>
