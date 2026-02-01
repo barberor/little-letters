@@ -29,14 +29,14 @@ export default function Dashboard() {
   // Garden state
   const [seeds, setSeeds] = useState(3)
   const [plots, setPlots] = useState([
-    { id: 0, stage: 'empty', plantedAt: null },
-    { id: 1, stage: 'empty', plantedAt: null },
-    { id: 2, stage: 'empty', plantedAt: null },
-    { id: 3, stage: 'empty', plantedAt: null },
-    { id: 4, stage: 'empty', plantedAt: null },
-    { id: 5, stage: 'empty', plantedAt: null },
-    { id: 6, stage: 'empty', plantedAt: null },
-    { id: 7, stage: 'empty', plantedAt: null },
+    { id: 0, stage: 'empty', plantedAt: null, flowerType: null },
+    { id: 1, stage: 'empty', plantedAt: null, flowerType: null },
+    { id: 2, stage: 'empty', plantedAt: null, flowerType: null },
+    { id: 3, stage: 'empty', plantedAt: null, flowerType: null },
+    { id: 4, stage: 'empty', plantedAt: null, flowerType: null },
+    { id: 5, stage: 'empty', plantedAt: null, flowerType: null },
+    { id: 6, stage: 'empty', plantedAt: null, flowerType: null },
+    { id: 7, stage: 'empty', plantedAt: null, flowerType: null },
   ])
 
   // Mailbox state - NOW EMPTY, LOADED FROM DATABASE
@@ -95,40 +95,36 @@ useEffect(() => {
     }
   }, [activeCategory, userRole, isMatched])
 
-  // Auto-grow plants every 5 seconds
+  // Individual plant growth based on plantedAt timestamp
   useEffect(() => {
     const growthInterval = setInterval(() => {
       setPlots(currentPlots => 
         currentPlots.map(plot => {
-          // Progress through stages: seed -> sprouting -> growing -> grown
-          if (plot.stage === 'seed') {
-            return { ...plot, stage: 'sprouting' }
-          } else if (plot.stage === 'sprouting') {
-            return { ...plot, stage: 'growing' }
-          } else if (plot.stage === 'growing') {
-            return { ...plot, stage: 'grown' }
+          // Skip empty plots or already grown plants
+          if (plot.stage === 'empty' || plot.stage === 'grown' || !plot.plantedAt) {
+            return plot
           }
-          return plot
+
+          const timeSincePlanted = Date.now() - plot.plantedAt
+          const GROWTH_INTERVAL = 5000 // 5 seconds per stage
+
+          // Determine stage based on time elapsed
+          if (timeSincePlanted >= GROWTH_INTERVAL * 3) {
+            // 15+ seconds: fully grown
+            return { ...plot, stage: 'grown' }
+          } else if (timeSincePlanted >= GROWTH_INTERVAL * 2) {
+            // 10-15 seconds: growing
+            return { ...plot, stage: 'growing' }
+          } else if (timeSincePlanted >= GROWTH_INTERVAL) {
+            // 5-10 seconds: sprouting
+            return { ...plot, stage: 'sprouting' }
+          } else {
+            // 0-5 seconds: seed
+            return { ...plot, stage: 'seed' }
+          }
         })
       )
-    }, 5000) // 5 seconds
-
-    return () => clearInterval(growthInterval)
-  }, [])
-
-  // Auto-grow plants every 5 seconds
-  useEffect(() => {
-    const growthInterval = setInterval(() => {
-      setPlots(currentPlots => 
-        currentPlots.map(plot => {
-          if (plot.stage === 'empty') return plot
-          if (plot.stage === 'seed') return { ...plot, stage: 'sprouting' }
-          if (plot.stage === 'sprouting') return { ...plot, stage: 'growing' }
-          if (plot.stage === 'growing') return { ...plot, stage: 'grown' }
-          return plot // already grown
-        })
-      )
-    }, 5000) // 5 seconds
+    }, 1000) // Check every second for smooth transitions
 
     return () => clearInterval(growthInterval)
   }, [])
@@ -253,10 +249,14 @@ useEffect(() => {
       return
     }
 
+    // Randomly select flower type: mush, sun, or bamb
+    const flowerTypes = ['mush', 'sun', 'bamb']
+    const randomFlowerType = flowerTypes[Math.floor(Math.random() * flowerTypes.length)]
+
     setSeeds(seeds - 1)
     setPlots(plots.map(p => 
       p.id === plotId 
-        ? { ...p, stage: 'seed', plantedAt: Date.now() }
+        ? { ...p, stage: 'seed', plantedAt: Date.now(), flowerType: randomFlowerType }
         : p
     ))
   }
@@ -350,7 +350,7 @@ useEffect(() => {
   }
 }
 
-  const getPlotVisual = (stage) => {
+  const getPlotVisual = (stage, flowerType) => {
     const content = (() => {
       switch(stage) {
         case 'empty':
@@ -358,11 +358,11 @@ useEffect(() => {
         case 'seed':
           return <img src="/small-seed.png" alt="Seed" style={{ width: '2rem', height: '2rem', objectFit: 'contain' }} />
         case 'sprouting':
-          return <img src="/sprout-sun.png" alt="Sprout" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+          return <img src={`/sprout-${flowerType}.png`} alt="Sprout" style={{ width: '150%', height: '150%', objectFit: 'contain' }} />
         case 'growing':
-          return <img src="/growing-sun.png" alt="Growing" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+          return <img src={`/growing-${flowerType}.png`} alt="Growing" style={{ width: '150%', height: '150%', objectFit: 'contain' }} />
         case 'grown':
-          return <img src="/grown-sun.png" alt="Grown" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+          return <img src={`/grown-${flowerType}.png`} alt="Grown" style={{ width: '150%', height: '150%', objectFit: 'contain' }} />
         default:
           return '➕'
       }
@@ -865,7 +865,7 @@ useEffect(() => {
                           }
                         }}
                       >
-                        {getPlotVisual(plot.stage)}
+                        {getPlotVisual(plot.stage, plot.flowerType)}
                       </div>
                     )
                   })}
