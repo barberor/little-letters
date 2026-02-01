@@ -6,7 +6,7 @@ export default function Dashboard() {
   const [activeCategory, setActiveCategory] = useState('My Garden')
   
   // Garden state
-  const [seeds, setSeeds] = useState(3) // Start with 3 seeds for demo
+  const [seeds, setSeeds] = useState(3)
   const [plots, setPlots] = useState([
     { id: 0, stage: 'empty', plantedAt: null },
     { id: 1, stage: 'empty', plantedAt: null },
@@ -28,11 +28,9 @@ export default function Dashboard() {
     { id: 5, isOpen: true, from: 'System', subject: 'Weekly summary', content: 'Here\'s your weekly summary of activities and achievements.' },
   ])
 
-  // Modal state for viewing messages
   const [selectedMessage, setSelectedMessage] = useState(null)
   const [showSeedAnimation, setShowSeedAnimation] = useState(false)
 
-  // Plant a seed in a plot
   const plantSeed = (plotId) => {
     if (seeds <= 0) {
       alert('No seeds available!')
@@ -45,7 +43,6 @@ export default function Dashboard() {
       return
     }
 
-    // Plant the seed
     setSeeds(seeds - 1)
     setPlots(plots.map(p => 
       p.id === plotId 
@@ -54,46 +51,37 @@ export default function Dashboard() {
     ))
   }
 
-  // Toggle message open/closed
   const toggleMessage = (messageId) => {
     const message = messages.find(m => m.id === messageId)
     
     if (message.isOpen) {
-      // Message already opened - just show it without seed animation
       setSelectedMessage(message)
       return
     }
 
-    // Mark message as opened
     setMessages(messages.map(m => 
       m.id === messageId 
         ? { ...m, isOpen: true }
         : m
     ))
 
-    // Show the message popup
     setSelectedMessage(message)
-
-    // Show seed animation and add seed
     setShowSeedAnimation(true)
     setSeeds(seeds + 1)
 
-    // Hide seed animation after 2 seconds
     setTimeout(() => {
       setShowSeedAnimation(false)
     }, 2000)
   }
 
-  // Close the message popup
   const closeMessage = () => {
     setSelectedMessage(null)
   }
 
-  // Get visual representation based on stage
   const getPlotVisual = (stage) => {
     switch(stage) {
       case 'empty':
-        return '➕' // Plus sign for empty plot
+        return '➕'
       case 'sprouting':
         return <img src="/sprout.png" alt="Sprout" style={{ width: '80%', height: '80%', objectFit: 'contain' }} />
       case 'growing':
@@ -107,7 +95,6 @@ export default function Dashboard() {
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: '#f5f5f0' }}>
-      {/* Message Popup Modal */}
       {selectedMessage && (
         <div 
           style={{
@@ -136,7 +123,6 @@ export default function Dashboard() {
             }}
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Already opened banner */}
             {selectedMessage.isOpen && (
               <div style={{
                 backgroundColor: '#fff3cd',
@@ -148,11 +134,10 @@ export default function Dashboard() {
                 fontSize: '0.9rem',
                 textAlign: 'center'
               }}>
-                This message has already been opened
+                ⚠️ This message has already been opened
               </div>
             )}
 
-            {/* Close button */}
             <button
               onClick={closeMessage}
               style={{
@@ -178,7 +163,6 @@ export default function Dashboard() {
               ✕
             </button>
 
-            {/* Message content */}
             <h2 style={{ marginBottom: '1rem', paddingRight: '2rem' }}>{selectedMessage.subject}</h2>
             <p style={{ color: '#666', marginBottom: '1.5rem', fontSize: '0.9rem' }}>
               From: {selectedMessage.from}
@@ -187,7 +171,6 @@ export default function Dashboard() {
               {selectedMessage.content}
             </p>
 
-            {/* Seed animation */}
             {showSeedAnimation && (
               <div style={{
                 position: 'absolute',
@@ -223,7 +206,6 @@ export default function Dashboard() {
         `}
       </style>
 
-      {/* Toolbar */}
       <div style={{ 
         borderBottom: '1px solid #ccc', 
         padding: '1.5rem',
@@ -233,7 +215,6 @@ export default function Dashboard() {
         position: 'relative',
         backgroundColor: 'white'
       }}>
-        {/* Navigation buttons */}
         <div style={{ display: 'flex', gap: '2rem' }}>
           <button 
             onClick={() => setActiveCategory('My Garden')}
@@ -269,7 +250,7 @@ export default function Dashboard() {
               fontSize: '1rem'
             }}
           >
-            My Mentor
+            My Pen Pal
           </button>
           <button 
             onClick={() => setActiveCategory('My Account')}
@@ -285,7 +266,6 @@ export default function Dashboard() {
           </button>
         </div>
 
-        {/* Centered Logo */}
         <div style={{
           position: 'absolute',
           left: '50%',
@@ -303,7 +283,6 @@ export default function Dashboard() {
           />
         </div>
 
-        {/* Seed counter */}
         <div style={{ 
           fontSize: '1.1rem', 
           fontWeight: 'bold',
@@ -318,17 +297,13 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Content Area */}
       <div style={{ flex: 1, padding: '2rem' }}>
         {activeCategory === 'My Garden' && (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-            
-            {/* Instructions */}
             <p style={{ marginBottom: '2rem', color: '#666' }}>
               Click on an empty plot (➕) to plant a seed!
             </p>
 
-            {/* Garden Grid - Green grass surrounding area with brown dirt plots */}
             <div style={{ 
                 display: 'grid', 
                 gridTemplateColumns: 'repeat(4, 1fr)',
@@ -336,7 +311,7 @@ export default function Dashboard() {
                 width: '100%',
                 maxWidth: '680px',
                 padding: '1.5rem',
-                backgroundColor: '#7cb342', // Green grass between plots
+                backgroundColor: '#7cb342',
                 borderRadius: '16px',
                 border: '3px solid rgb(151, 95, 62)',
                 boxSizing: 'border-box'
@@ -351,7 +326,7 @@ export default function Dashboard() {
                         aspectRatio: '1',
                         maxWidth: '150px',
                         maxHeight: '150px',
-                        backgroundColor: 'rgb(151, 95, 62)', // Exact brown dirt color
+                        backgroundColor: 'rgb(151, 95, 62)',
                         border: `3px solid rgb(151, 95, 62)`,
                         borderRadius: '12px',
                         display: 'flex',
@@ -382,7 +357,6 @@ export default function Dashboard() {
                 })}
               </div>
 
-              {/* Demo buttons to simulate growth (remove these later when you add real timers) */}
               <div style={{ marginTop: '3rem', padding: '1.5rem', backgroundColor: '#f9f9f9', borderRadius: '8px' }}>
                 <h3 style={{ marginBottom: '1rem' }}>🧪 Demo Controls (for testing)</h3>
                 <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
@@ -401,7 +375,6 @@ export default function Dashboard() {
                   </button>
                   <button 
                     onClick={() => {
-                      // Advance all sprouting plants to growing
                       setPlots(plots.map(p => 
                         p.stage === 'sprouting' ? { ...p, stage: 'growing' } : p
                       ))
@@ -419,7 +392,6 @@ export default function Dashboard() {
                   </button>
                   <button 
                     onClick={() => {
-                      // Advance all growing plants to grown
                       setPlots(plots.map(p => 
                         p.stage === 'growing' ? { ...p, stage: 'grown' } : p
                       ))
@@ -437,7 +409,6 @@ export default function Dashboard() {
                   </button>
                   <button 
                     onClick={() => {
-                      // Reset garden
                       setPlots(plots.map(p => ({ ...p, stage: 'empty', plantedAt: null })))
                       setSeeds(3)
                     }}
@@ -462,8 +433,6 @@ export default function Dashboard() {
         
         {activeCategory === 'My Mentor' && (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-            
-            {/* Mentor Information - Two Column Layout */}
             <div style={{ 
               width: '100%',
               maxWidth: '900px',
@@ -475,14 +444,12 @@ export default function Dashboard() {
               gap: '2rem',
               alignItems: 'flex-start'
             }}>
-              {/* Left Column - Picture and Name */}
               <div style={{ 
                 width: '350px',
                 display: 'flex',
                 flexDirection: 'column',
                 gap: '1.5rem'
               }}>
-                {/* Mentor Profile Image */}
                 <div style={{ 
                   width: '100%',
                   aspectRatio: '1',
@@ -504,7 +471,6 @@ export default function Dashboard() {
                   />
                 </div>
 
-                {/* Mentor Name */}
                 <h3 style={{ 
                   fontSize: '1.5rem', 
                   fontWeight: 'bold',
@@ -515,7 +481,6 @@ export default function Dashboard() {
                 </h3>
               </div>
 
-              {/* Right Column - About and Interests */}
               <div style={{ 
                 flex: 1,
                 display: 'flex',
@@ -523,7 +488,6 @@ export default function Dashboard() {
                 gap: '2rem',
                 justifyContent: 'center'
               }}>
-                {/* About Section */}
                 <div>
                   <h4 style={{ 
                     fontSize: '0.9rem', 
@@ -544,7 +508,6 @@ export default function Dashboard() {
                   </p>
                 </div>
 
-                {/* Interests Section */}
                 <div>
                   <h4 style={{ 
                     fontSize: '0.9rem', 
@@ -602,8 +565,6 @@ export default function Dashboard() {
         
         {activeCategory === 'Mailbox' && (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-            
-            {/* Envelope Grid */}
             <div style={{ 
               display: 'grid', 
               gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))',
@@ -631,7 +592,6 @@ export default function Dashboard() {
                     e.currentTarget.style.transform = 'translateY(0)'
                   }}
                 >
-                  {/* Envelope Image */}
                   <div style={{
                     width: '250px',
                     height: '200px',
@@ -650,7 +610,6 @@ export default function Dashboard() {
                     />
                   </div>
 
-                  {/* Message Info */}
                   <div style={{ 
                     textAlign: 'center',
                     width: '100%'
@@ -675,7 +634,6 @@ export default function Dashboard() {
               ))}
             </div>
 
-            {/* Demo button to add test messages */}
             <div style={{ marginTop: '3rem', padding: '1.5rem', backgroundColor: '#f9f9f9', borderRadius: '8px' }}>
               <h3 style={{ marginBottom: '1rem' }}>🧪 Demo Controls (for testing)</h3>
               <button 
@@ -706,17 +664,13 @@ export default function Dashboard() {
         
         {activeCategory === 'My Account' && (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
-            
-            {/* Top Row - Account Info and Statistics */}
             <div style={{ 
               display: 'flex',
               gap: '2rem',
               width: '100%',
               maxWidth: '1200px',
-              alignItems: 'flex-start',
-              marginBottom: '2rem'
+              alignItems: 'stretch'
             }}>
-              {/* Left Side - Account Information */}
               <div style={{ 
                 flex: 1,
                 backgroundColor: '#f9f9f9',
@@ -726,7 +680,6 @@ export default function Dashboard() {
               }}>
                 <h2 style={{ marginBottom: '1.5rem', fontSize: '1.3rem' }}>Account Information</h2>
                 
-                {/* Name - Greyed out */}
                 <div style={{ marginBottom: '1rem' }}>
                   <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold', fontSize: '0.9rem' }}>
                     Name
@@ -748,7 +701,6 @@ export default function Dashboard() {
                   />
                 </div>
 
-                {/* Email - Greyed out */}
                 <div style={{ marginBottom: '1rem' }}>
                   <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold', fontSize: '0.9rem' }}>
                     Email
@@ -770,7 +722,27 @@ export default function Dashboard() {
                   />
                 </div>
 
-                {/* Guardian - Greyed out */}
+                <div style={{ marginBottom: '1rem' }}>
+                  <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold', fontSize: '0.9rem' }}>
+                    Grade Level
+                  </label>
+                  <input 
+                    type="text"
+                    value="10th Grade"
+                    disabled
+                    style={{
+                      width: '100%',
+                      padding: '0.75rem',
+                      borderRadius: '6px',
+                      border: '1px solid #ccc',
+                      backgroundColor: '#e9e9e9',
+                      color: '#888',
+                      fontSize: '1rem',
+                      cursor: 'not-allowed'
+                    }}
+                  />
+                </div>
+
                 <div style={{ marginBottom: '1rem' }}>
                   <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold', fontSize: '0.9rem' }}>
                     Guardian
@@ -792,7 +764,6 @@ export default function Dashboard() {
                   />
                 </div>
 
-                {/* Hobbies & Interests - Editable */}
                 <div style={{ marginBottom: '1rem' }}>
                   <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold', fontSize: '0.9rem' }}>
                     Hobbies & Interests
@@ -814,100 +785,102 @@ export default function Dashboard() {
                 </div>
               </div>
 
-              {/* Right Side - Statistics */}
               <div style={{ 
                 width: '400px',
-                backgroundColor: '#f9f9f9',
-                borderRadius: '12px',
-                padding: '2rem',
-                border: '1px solid #e0e0e0'
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '2rem'
               }}>
-                <h2 style={{ marginBottom: '1.5rem', fontSize: '1.3rem' }}>Statistics</h2>
-                
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                  <div style={{ 
-                    backgroundColor: 'white', 
-                    padding: '1.5rem', 
-                    borderRadius: '8px',
-                    textAlign: 'center'
-                  }}>
-                    <p style={{ fontSize: '0.9rem', color: '#666', marginBottom: '0.5rem' }}>Total Letters Sent</p>
-                    <p style={{ fontSize: '2rem', fontWeight: 'bold', color: '#333' }}>12</p>
-                  </div>
+                <div style={{ 
+                  backgroundColor: '#f9f9f9',
+                  borderRadius: '12px',
+                  padding: '2rem',
+                  border: '1px solid #e0e0e0'
+                }}>
+                  <h2 style={{ marginBottom: '1.5rem', fontSize: '1.3rem' }}>Statistics</h2>
                   
-                  <div style={{ 
-                    backgroundColor: 'white', 
-                    padding: '1.5rem', 
-                    borderRadius: '8px',
-                    textAlign: 'center'
-                  }}>
-                    <p style={{ fontSize: '0.9rem', color: '#666', marginBottom: '0.5rem' }}>Total Letters Received</p>
-                    <p style={{ fontSize: '2rem', fontWeight: 'bold', color: '#333' }}>18</p>
-                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                    <div style={{ 
+                      backgroundColor: 'white', 
+                      padding: '0.75rem', 
+                      borderRadius: '8px',
+                      textAlign: 'center'
+                    }}>
+                      <p style={{ fontSize: '0.8rem', color: '#666', marginBottom: '0.25rem' }}>Total Letters Sent</p>
+                      <p style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#333' }}>12</p>
+                    </div>
+                    
+                    <div style={{ 
+                      backgroundColor: 'white', 
+                      padding: '0.75rem', 
+                      borderRadius: '8px',
+                      textAlign: 'center'
+                    }}>
+                      <p style={{ fontSize: '0.8rem', color: '#666', marginBottom: '0.25rem' }}>Total Letters Received</p>
+                      <p style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#333' }}>18</p>
+                    </div>
 
-                  <div style={{ 
-                    backgroundColor: 'white', 
-                    padding: '1.5rem', 
-                    borderRadius: '8px',
-                    textAlign: 'center'
-                  }}>
-                    <p style={{ fontSize: '0.9rem', color: '#666', marginBottom: '0.5rem' }}>Date Joined</p>
-                    <p style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#333' }}>January 15, 2026</p>
+                    <div style={{ 
+                      backgroundColor: 'white', 
+                      padding: '0.75rem', 
+                      borderRadius: '8px',
+                      textAlign: 'center'
+                    }}>
+                      <p style={{ fontSize: '0.8rem', color: '#666', marginBottom: '0.25rem' }}>Date Joined</p>
+                      <p style={{ fontSize: '0.95rem', fontWeight: 'bold', color: '#333' }}>January 15, 2026</p>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </div>
 
-            {/* Bottom Section - Account Actions */}
-            <div style={{ 
-              width: '100%',
-              maxWidth: '1200px',
-              backgroundColor: '#f9f9f9',
-              borderRadius: '12px',
-              padding: '2rem',
-              border: '1px solid #e0e0e0'
-            }}>
-              <h2 style={{ marginBottom: '1.5rem', fontSize: '1.3rem' }}>Account Actions</h2>
-              
-              <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
-                <button style={{
-                  padding: '0.75rem 1.5rem',
-                  backgroundColor: '#4f8f63',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '6px',
-                  fontSize: '1rem',
-                  cursor: 'pointer',
-                  fontWeight: 'bold'
+                <div style={{ 
+                  backgroundColor: '#f9f9f9',
+                  borderRadius: '12px',
+                  padding: '2rem',
+                  border: '1px solid #e0e0e0'
                 }}>
-                  Reset Password
-                </button>
+                  <h2 style={{ marginBottom: '1.5rem', fontSize: '1.3rem' }}>Account Actions</h2>
+                  
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                    <button style={{
+                      padding: '0.75rem 1.5rem',
+                      backgroundColor: '#9CAF88',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '6px',
+                      fontSize: '1rem',
+                      cursor: 'pointer',
+                      fontWeight: 'bold'
+                    }}>
+                      Reset Password
+                    </button>
 
-                <button style={{
-                  padding: '0.75rem 1.5rem',
-                  backgroundColor: '#4f8f63',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '6px',
-                  fontSize: '1rem',
-                  cursor: 'pointer',
-                  fontWeight: 'bold'
-                }}>
-                  Reset Email
-                </button>
+                    <button style={{
+                      padding: '0.75rem 1.5rem',
+                      backgroundColor: '#9CAF88',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '6px',
+                      fontSize: '1rem',
+                      cursor: 'pointer',
+                      fontWeight: 'bold'
+                    }}>
+                      Reset Email
+                    </button>
 
-                <button style={{
-                  padding: '0.75rem 1.5rem',
-                  backgroundColor: 'transparent',
-                  color: '#ff0000',
-                  border: '2px solid #ff0000',
-                  borderRadius: '6px',
-                  fontSize: '1rem',
-                  cursor: 'pointer',
-                  fontWeight: 'bold'
-                }}>
-                  Delete Account
-                </button>
+                    <button style={{
+                      padding: '0.75rem 1.5rem',
+                      backgroundColor: 'transparent',
+                      color: '#c66161',
+                      border: '2px solid #c66161',
+                      borderRadius: '6px',
+                      fontSize: '1rem',
+                      cursor: 'pointer',
+                      fontWeight: 'bold'
+                    }}>
+                      Delete Account
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
