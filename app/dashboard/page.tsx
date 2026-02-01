@@ -198,7 +198,7 @@ export default function Dashboard() {
                 fontSize: '3rem',
                 pointerEvents: 'none'
               }}>
-                🌰
+                <img src="/small-seed.png" alt="seed" style={{ width: '1.7rem', height: '1.7rem', objectFit: 'contain' }} />
               </div>
             )}
           </div>
@@ -244,7 +244,7 @@ export default function Dashboard() {
               fontSize: '1rem'
             }}
           >
-            My Garden
+            Garden
           </button>
           <button 
             onClick={() => setActiveCategory('Mailbox')}
@@ -257,6 +257,18 @@ export default function Dashboard() {
             }}
           >
             Mailbox
+          </button>
+          <button 
+            onClick={() => setActiveCategory('My Mentor')}
+            style={{ 
+              background: 'none', 
+              border: 'none', 
+              cursor: 'pointer',
+              fontWeight: activeCategory === 'My Mentor' ? 'bold' : 'normal',
+              fontSize: '1rem'
+            }}
+          >
+            My Mentor
           </button>
           <button 
             onClick={() => setActiveCategory('My Account')}
@@ -298,7 +310,9 @@ export default function Dashboard() {
           alignItems: 'center',
           gap: '0.5rem'
         }}>
-          <span>🌰</span>
+          <span>
+            <img src="/small-seed.png" alt="seed" style={{ width: '1.7rem', height: '1.7rem', objectFit: 'contain' }} />
+          </span>
           <span>Seeds: {seeds}</span>
         </div>
       </div>
@@ -306,18 +320,15 @@ export default function Dashboard() {
       {/* Content Area */}
       <div style={{ flex: 1, padding: '2rem' }}>
         {activeCategory === 'My Garden' && (
-          <div style={{ display: 'flex', gap: '2rem', alignItems: 'flex-start' }}>
-            {/* Left Side - Garden */}
-            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-              <h1 style={{ marginBottom: '2rem' }}>My Garden</h1>
-              
-              {/* Instructions */}
-              <p style={{ marginBottom: '2rem', color: '#666' }}>
-                Click on an empty plot (➕) to plant a seed!
-              </p>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            
+            {/* Instructions */}
+            <p style={{ marginBottom: '2rem', color: '#666' }}>
+              Click on an empty plot (➕) to plant a seed!
+            </p>
 
-              {/* Garden Grid - Green grass surrounding area with brown dirt plots */}
-              <div style={{ 
+            {/* Garden Grid - Green grass surrounding area with brown dirt plots */}
+            <div style={{ 
                 display: 'grid', 
                 gridTemplateColumns: 'repeat(4, 1fr)',
                 gap: '1rem',
@@ -445,18 +456,21 @@ export default function Dashboard() {
                   These buttons simulate growth stages. Later, you'll replace this with actual timers.
                 </p>
               </div>
-            </div>
-
-            {/* Right Side - Mentor Information */}
+          </div>
+        )}
+        
+        {activeCategory === 'My Mentor' && (
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            
+            {/* Mentor Information */}
             <div style={{ 
-              width: '350px',
-              padding: '1.5rem',
+              width: '100%',
+              maxWidth: '500px',
+              padding: '2rem',
               backgroundColor: '#f9f9f9',
               borderRadius: '12px',
               border: '2px solid #e0e0e0'
             }}>
-              <h2 style={{ marginBottom: '1.5rem', fontSize: '1.5rem' }}>My Mentor</h2>
-              
               {/* Mentor Profile Image */}
               <div style={{ 
                 width: '100%',
@@ -482,15 +496,16 @@ export default function Dashboard() {
 
               {/* Mentor Name */}
               <h3 style={{ 
-                fontSize: '1.3rem', 
+                fontSize: '1.5rem', 
                 marginBottom: '0.5rem',
-                fontWeight: 'bold'
+                fontWeight: 'bold',
+                textAlign: 'center'
               }}>
                 Dr. Sarah Johnson
               </h3>
 
               {/* Mentor Description */}
-              <div style={{ marginBottom: '1.5rem' }}>
+              <div style={{ marginBottom: '1.5rem', marginTop: '2rem' }}>
                 <h4 style={{ 
                   fontSize: '0.9rem', 
                   color: '#666', 
@@ -567,7 +582,6 @@ export default function Dashboard() {
         
         {activeCategory === 'Mailbox' && (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-            <h1 style={{ marginBottom: '2rem' }}>Mailbox</h1>
             
             {/* Envelope Grid */}
             <div style={{ 
@@ -672,7 +686,6 @@ export default function Dashboard() {
         
         {activeCategory === 'My Account' && (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
-            <h1 style={{ marginBottom: '2rem' }}>My Account</h1>
             
             {/* Top Row - Account Info and Statistics */}
             <div style={{ 
