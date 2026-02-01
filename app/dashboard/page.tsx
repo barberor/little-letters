@@ -128,9 +128,9 @@ export default function Dashboard() {
             {selectedMessage.isOpen && (
               <div style={{
                 backgroundColor: '#fff9e6',
-                border: '2px dashed #d4a574',
+                border: '1px solid #d4a574',
                 borderRadius: '12px',
-                padding: '1rem',
+                padding: '0.3rem',
                 marginBottom: '1.5rem',
                 color: '#8B7355',
                 fontSize: '1.1rem',
@@ -179,7 +179,7 @@ export default function Dashboard() {
               color: 'white',
               padding: '0.5rem 1.5rem',
               borderRadius: '20px',
-              fontSize: '0.95rem',
+              fontSize: '0.9rem',
               marginBottom: '1.5rem',
               fontWeight: 500
             }}>
@@ -189,10 +189,10 @@ export default function Dashboard() {
             <h2 style={{ 
               marginBottom: '1.5rem', 
               paddingRight: '2rem',
-              fontSize: '2.5rem',
+              fontSize: '1.6rem',
               color: '#8B7355',
-              fontWeight: 600,
-              lineHeight: 1.2
+              fontWeight: 100,
+              lineHeight: 1.2,
             }}>
               {selectedMessage.subject}
             </h2>
@@ -202,12 +202,12 @@ export default function Dashboard() {
               padding: '2rem',
               borderRadius: '16px',
               border: '2px solid #E8E3D8',
-              boxShadow: 'inset 0 2px 8px rgba(0,0,0,0.05)'
+              boxShadow: 'inset 0 2px 8px rgba(0,0,0,0.05)',
             }}>
               <p style={{ 
                 lineHeight: '1.8', 
                 color: '#5a4a3d',
-                fontSize: '1.3rem',
+                fontSize: '1.0rem',
                 margin: 0
               }}>
                 {selectedMessage.content}
