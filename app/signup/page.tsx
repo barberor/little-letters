@@ -18,47 +18,28 @@ export default function SignUpPage() {
   const router = useRouter();
 
   const [role, setRole] = useState<Role | null>(null);
-
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
+  const [childEmail, setChildEmail] = useState(""); // ⭐ NEW
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
-  // NEW FIELDS
-  const [grade, setGrade] = useState("");           // student
-  const [interests, setInterests] = useState("");   // student + mentor
+  const [grade, setGrade] = useState("");
+  const [interests, setInterests] = useState("");
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [signedUpEmail, setSignedUpEmail] = useState<string | null>(null);
 
   const handleSignUp = async () => {
     setError(null);
 
-    if (!role) {
-      setError("Please select a role.");
-      return;
-    }
+    if (!role) return setError("Please select a role.");
+    if (!email || !password) return setError("Missing required fields.");
+    if (password !== confirmPassword)
+      return setError("Passwords do not match.");
 
-    if (!email || !password) {
-      setError("Please fill out all required fields.");
-      return;
-    }
-
-    if (password !== confirmPassword) {
-      setError("Passwords do not match.");
-      return;
-    }
-
-    // Basic validation
-    if (role === "student" && !grade) {
-      setError("Please select a grade.");
-      return;
-    }
-
-    if ((role === "student" || role === "mentor") && !interests) {
-      setError("Please add at least one interest.");
-      return;
+    if (role === "parent" && !childEmail) {
+      return setError("Please enter your child’s email.");
     }
 
     setLoading(true);
@@ -74,134 +55,116 @@ export default function SignUpPage() {
       },
     });
 
+    if (error || !data.user) {
+      setLoading(false);
+      return setError(error?.message ?? "Signup failed.");
+    }
+
+    const userId = data.user.id;
+
+    // 📌 Create profile row
+    await supabase.from("profiles").insert({
+      id: userId,
+      role,
+      full_name: fullName,
+      parent_id: role === "parent" ? userId : null,
+      child_email: role === "parent" ? childEmail : null,
+      grade: role === "student" ? grade : null,
+      interests: interests || null,
+    });
+
     setLoading(false);
 
-    if (error) {
-      setError(error.message);
-      return;
-    }
-
-    // 🚀 Student & Mentor go straight to dashboard
-    if (role === "student" || role === "mentor") {
+    // 🚀 ROUTING
+    if (role === "parent") {
+      router.push("/parentdashboard");
+    } else {
       router.push("/dashboard");
-      return;
     }
-
-    setSignedUpEmail(data.user?.email ?? email);
   };
 
   return (
-    <main
-      className="min-h-screen flex items-center justify-center px-4"
-      style={{
-        background: "radial-gradient(circle at top, #fafaf7, #f5f5f0)",
-      }}
-    >
-      <div className="w-full max-w-md bg-white/70 rounded-3xl p-8 shadow-sm space-y-6">
-
-        <h1 className="text-3xl font-semibold text-center text-[#8B6F5B]">
+    <main className="min-h-screen flex items-center justify-center px-4">
+      <div className="w-full max-w-md bg-white/70 rounded-3xl p-8 space-y-3">
+        <h1 className="text-3xl font-semibold text-center">
           Create your account
         </h1>
 
-        {/* Escape hatch */}
-        {!signedUpEmail && (
-          <p className="text-sm text-center text-[#6f5a4d]">
-            Already have an account?{" "}
-            <Link href="/login" className="underline">
-              Sign in
-            </Link>
-          </p>
-        )}
-
-        {/* ROLE SELECTION */}
         {!role && (
-          <>
-            <p className="text-center text-[#6f5a4d]">
-              I’m signing up as a:
-            </p>
-
-            <div className="space-y-2">
-              {(Object.keys(roleLabels) as Role[]).map((r) => (
-                <button
-                  key={r}
-                  onClick={() => setRole(r)}
-                  className="w-full rounded-xl border border-[#d6cfc8] py-2 hover:bg-[#fafaf7]"
-                >
-                  {roleLabels[r]}
-                </button>
-              ))}
-            </div>
-          </>
+          <div className="space-y-2">
+            {(Object.keys(roleLabels) as Role[]).map((r) => (
+              <button
+                key={r}
+                onClick={() => setRole(r)}
+                className="w-full rounded-xl border py-2"
+              >
+                {roleLabels[r]}
+              </button>
+            ))}
+          </div>
         )}
 
-        {/* FORM */}
-        {role && !signedUpEmail && (
+        {role && (
           <>
-            <p className="text-sm text-center text-[#6f5a4d]">
-              Signing up as {roleLabels[role]}
-            </p>
+            <input
+              placeholder="Full name"
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
+              className="w-full rounded-xl border px-4 py-2"
+            />
 
-            <div className="space-y-3">
+            {/* 👨‍👩‍👧 PARENT ONLY */}
+            {role === "parent" && (
               <input
-                placeholder="Full name"
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                className="w-full rounded-xl border border-[#d6cfc8] px-4 py-2"
-              />
-
-              {/* STUDENT ONLY */}
-              {role === "student" && (
-              <input
-                type="text"
-                placeholder="Grade (e.g. 2nd, Grade 4, K)"
-                value={grade}
-                onChange={(e) => setGrade(e.target.value)}
-                className="w-full rounded-xl border border-[#d6cfc8] px-4 py-2"
+                type="email"
+                placeholder="Child’s email"
+                value={childEmail}
+                onChange={(e) => setChildEmail(e.target.value)}
+                className="w-full rounded-xl border px-4 py-2"
               />
             )}
 
-
-              {/* STUDENT + MENTOR */}
-              {(role === "student" || role === "mentor") && (
-                <input
-                  placeholder="Interests (e.g. art, animals, soccer)"
-                  value={interests}
-                  onChange={(e) => setInterests(e.target.value)}
-                  className="w-full rounded-xl border border-[#d6cfc8] px-4 py-2"
-                />
-              )}
-
+            {role === "student" && (
               <input
-            type="email"
-            placeholder={
-              role === "student"
-                ? "School Email"
-                : role === "mentor"
-                ? "MSU Email"
-                : "Email"
-            }
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="w-full rounded-xl border border-[#d6cfc8] px-4 py-2"
-          />
-
-
-              <input
-                type="password"
-                placeholder="Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full rounded-xl border border-[#d6cfc8] px-4 py-2"
+                placeholder="Grade"
+                value={grade}
+                onChange={(e) => setGrade(e.target.value)}
+                className="w-full rounded-xl border px-4 py-2"
               />
+            )}
 
+            {(role === "student" || role === "mentor") && (
               <input
-                type="password"
-                placeholder="Confirm password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                className="w-full rounded-xl border border-[#d6cfc8] px-4 py-2"
+                placeholder="Interests"
+                value={interests}
+                onChange={(e) => setInterests(e.target.value)}
+                className="w-full rounded-xl border px-4 py-2"
               />
-            </div>
+            )}
+
+            <input
+              type="email"
+              placeholder="Email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full rounded-xl border px-4 py-2"
+            />
+
+            <input
+              type="password"
+              placeholder="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full rounded-xl border px-4 py-2"
+            />
+
+            <input
+              type="password"
+              placeholder="Confirm password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              className="w-full rounded-xl border px-4 py-2"
+            />
 
             {error && (
               <p className="text-sm text-red-600 text-center">{error}</p>
@@ -210,30 +173,26 @@ export default function SignUpPage() {
             <button
               onClick={handleSignUp}
               disabled={loading}
-              className="w-full rounded-2xl py-3 text-lg font-medium bg-[#9CAF88] text-white transition-all hover:scale-105 disabled:opacity-50"
+              className="w-full rounded-2xl py-3 bg-[#9CAF88] text-white"
             >
               {loading ? "Creating account..." : "Sign up"}
             </button>
 
             <button
               onClick={() => setRole(null)}
-              className="text-sm underline text-[#6f5a4d] w-full"
+              className="text-sm underline w-full"
             >
               Change role
             </button>
           </>
         )}
 
-        {signedUpEmail && (
-          <div className="text-center space-y-2">
-            <p className="text-green-700 font-medium">Welcome!</p>
-            <p className="text-sm">{signedUpEmail}</p>
-            <p className="text-xs text-[#6f5a4d]">
-              Check your email to confirm your account.
-            </p>
-          </div>
-        )}
-
+        <p className="text-sm text-center">
+          Already have an account?{" "}
+          <Link href="/login" className="underline">
+            Sign in
+          </Link>
+        </p>
       </div>
     </main>
   );
