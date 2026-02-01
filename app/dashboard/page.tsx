@@ -39,6 +39,25 @@ export default function Dashboard() {
   const [selectedMessage, setSelectedMessage] = useState(null)
   const [showSeedAnimation, setShowSeedAnimation] = useState(false)
 
+  // NEW: Fetch user data on mount
+useEffect(() => {
+  const fetchUserData = async () => {
+    try {
+      const response = await fetch('/api/me/profile')
+      if (response.ok) {
+        const profile = await response.json()
+        setUserRole(profile.role)
+        setIsMatched(profile.matched)
+        setIsApproved(profile.approved)
+        setSeeds(parseInt(profile.seed_count) || 3)
+      }
+    } catch (error) {
+      console.error('Error fetching user data:', error)
+    }
+  }
+  fetchUserData()
+}, [])
+
   // NEW: Fetch students when mentor views Find a Pen Pal
   useEffect(() => {
     if (activeCategory === 'Find a Pen Pal' && userRole === 'mentor' && !isMatched) {
