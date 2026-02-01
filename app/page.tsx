@@ -33,7 +33,7 @@ export default function Home() {
           </Link>
 
           <Link href="/signup">
-            <button className="px-8 py-3 rounded-2xl text-lg font-medium bg-white text-[#8B6F5B] border border-[#d6cfc8] shadow-sm transition-all hover:scale-105 hover:shadow-md">
+            <button className="px-8 py-3 rounded-2xl text-lg font-medium bg-[#9CAF88] text-white border border-[#d6cfc8] shadow-sm transition-all hover:scale-105 hover:shadow-md">
               Sign up
             </button>
           </Link>
