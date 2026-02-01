@@ -1,19 +1,11 @@
 import { NextResponse } from 'next/server'
 import { createSupabaseServerClient } from '@/lib/supabaseServer'
 
-/**
- * GET /api/match
- * Returns the current match for the logged-in user (student OR mentor),
- * or null if no match exists yet.
- */
 export async function GET() {
   const supabase = await createSupabaseServerClient()
 
-  const {
-    data: { user },
-    error: userError
-  } = await supabase.auth.getUser()
-
+  const { data: { user }, error: userError } = await supabase.auth.getUser()
+  
   if (!user || userError) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
@@ -28,40 +20,31 @@ export async function GET() {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
-  return NextResponse.json(data)
+  return NextResponse.json(data ?? null)
 }
 
-/**
- * POST /api/match
- * Mentor creates an instant match with a student.
- * Body: { studentId: string }
- */
 export async function POST(req: Request) {
   const supabase = await createSupabaseServerClient()
   const { studentId } = await req.json()
 
   if (!studentId) {
-    return NextResponse.json(
-      { error: 'studentId is required' },
-      { status: 400 }
-    )
+    return NextResponse.json({ error: 'studentId is required' }, { status: 400 })
   }
 
-  const {
-    data: { user },
-    error: userError
-  } = await supabase.auth.getUser()
+  const { data: { user }, error: userError } = await supabase.auth.getUser()
 
   if (!user || userError) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const { error } = await supabase.from('matches').insert({
-    mentor_id: user.id,
-    student_id: studentId
+  // THIS is what should be there - using the database function
+  const { error } = await supabase.rpc('create_match', {
+    mentor_uuid: user.id,
+    student_uuid: studentId
   })
 
   if (error) {
+    console.error('Match creation error:', error)
     return NextResponse.json({ error: error.message }, { status: 400 })
   }
 

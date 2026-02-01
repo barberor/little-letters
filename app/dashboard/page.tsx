@@ -1,9 +1,17 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 export default function Dashboard() {
   const [activeCategory, setActiveCategory] = useState('My Garden')
+  
+  // NEW: Add these states for matching functionality
+  const [userRole, setUserRole] = useState('mentor') // TODO: Fetch from database
+  const [isMatched, setIsMatched] = useState(false) // TODO: Fetch from database
+  const [isApproved, setIsApproved] = useState(true) // TODO: Fetch from database (for students)
+  const [availableStudents, setAvailableStudents] = useState([])
+  const [loadingStudents, setLoadingStudents] = useState(false)
+  const [matchingInProgress, setMatchingInProgress] = useState(false)
   
   // Garden state
   const [seeds, setSeeds] = useState(3)
@@ -30,6 +38,59 @@ export default function Dashboard() {
 
   const [selectedMessage, setSelectedMessage] = useState(null)
   const [showSeedAnimation, setShowSeedAnimation] = useState(false)
+
+  // NEW: Fetch students when mentor views Find a Pen Pal
+  useEffect(() => {
+    if (activeCategory === 'Find a Pen Pal' && userRole === 'mentor' && !isMatched) {
+      fetchAvailableStudents()
+    }
+  }, [activeCategory, userRole, isMatched])
+
+  // NEW: Fetch available students function
+  const fetchAvailableStudents = async () => {
+    setLoadingStudents(true)
+    try {
+      const response = await fetch('/api/students/available')
+      if (response.ok) {
+        const data = await response.json()
+        setAvailableStudents(data)
+      }
+    } catch (error) {
+      console.error('Error fetching students:', error)
+    } finally {
+      setLoadingStudents(false)
+    }
+  }
+
+  // NEW: Handle match creation
+  const handleCreateMatch = async (studentId) => {
+    if (matchingInProgress) return
+    
+    setMatchingInProgress(true)
+    try {
+      const response = await fetch('/api/match', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ studentId }),
+      })
+
+      if (response.ok) {
+        setIsMatched(true)
+        alert('Successfully matched! You can now start writing letters.')
+        setActiveCategory('Mailbox')
+      } else {
+        const error = await response.json()
+        alert(error.error || 'Failed to create match')
+      }
+    } catch (error) {
+      console.error('Error creating match:', error)
+      alert('An error occurred while matching')
+    } finally {
+      setMatchingInProgress(false)
+    }
+  }
 
   const plantSeed = (plotId) => {
     if (seeds <= 0) {
@@ -103,41 +164,38 @@ export default function Dashboard() {
             left: 0,
             right: 0,
             bottom: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.6)',
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            zIndex: 1000,
-            backdropFilter: 'blur(4px)'
+            zIndex: 1000
           }}
           onClick={closeMessage}
         >
           <div 
             style={{
-              backgroundColor: '#fafaf7',
-              borderRadius: '24px',
-              padding: '3rem',
-              maxWidth: '650px',
+              backgroundColor: 'white',
+              borderRadius: '12px',
+              padding: '2rem',
+              maxWidth: '600px',
               width: '90%',
               position: 'relative',
-              boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)',
-              border: '3px solid #E8C5B5',
+              boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
             }}
             onClick={(e) => e.stopPropagation()}
           >
             {selectedMessage.isOpen && (
               <div style={{
-                backgroundColor: '#fff9e6',
-                border: '2px dashed #d4a574',
-                borderRadius: '12px',
-                padding: '1rem',
-                marginBottom: '1.5rem',
-                color: '#8B7355',
-                fontSize: '1.1rem',
-                textAlign: 'center',
-                fontWeight: 500
+                backgroundColor: '#fff3cd',
+                border: '1px solid #ffc107',
+                borderRadius: '6px',
+                padding: '0.75rem',
+                marginBottom: '1rem',
+                color: '#856404',
+                fontSize: '0.9rem',
+                textAlign: 'center'
               }}>
-                You've already read this one!
+                This message has already been opened
               </div>
             )}
 
@@ -145,74 +203,34 @@ export default function Dashboard() {
               onClick={closeMessage}
               style={{
                 position: 'absolute',
-                top: '1.5rem',
-                right: '1.5rem',
-                background: '#E8C5B5',
+                top: '1rem',
+                right: '1rem',
+                background: 'none',
                 border: 'none',
                 fontSize: '1.5rem',
                 cursor: 'pointer',
-                color: '#8B7355',
-                width: '40px',
-                height: '40px',
+                color: '#666',
+                width: '30px',
+                height: '30px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 borderRadius: '50%',
-                transition: 'all 0.2s',
-                fontWeight: 'bold'
+                transition: 'background-color 0.2s'
               }}
-              onMouseEnter={(e) => {
-                e.target.style.backgroundColor = '#D9B6A6'
-                e.target.style.transform = 'scale(1.1)'
-              }}
-              onMouseLeave={(e) => {
-                e.target.style.backgroundColor = '#E8C5B5'
-                e.target.style.transform = 'scale(1)'
-              }}
+              onMouseEnter={(e) => e.target.style.backgroundColor = '#f0f0f0'}
+              onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
             >
               ✕
             </button>
 
-            <div style={{
-              display: 'inline-block',
-              backgroundColor: '#9CAF88',
-              color: 'white',
-              padding: '0.5rem 1.5rem',
-              borderRadius: '20px',
-              fontSize: '0.95rem',
-              marginBottom: '1.5rem',
-              fontWeight: 500
-            }}>
-              from: {selectedMessage.from}
-            </div>
-
-            <h2 style={{ 
-              marginBottom: '1.5rem', 
-              paddingRight: '2rem',
-              fontSize: '2.5rem',
-              color: '#8B7355',
-              fontWeight: 600,
-              lineHeight: 1.2
-            }}>
-              {selectedMessage.subject}
-            </h2>
-
-            <div style={{
-              backgroundColor: 'white',
-              padding: '2rem',
-              borderRadius: '16px',
-              border: '2px solid #E8E3D8',
-              boxShadow: 'inset 0 2px 8px rgba(0,0,0,0.05)'
-            }}>
-              <p style={{ 
-                lineHeight: '1.8', 
-                color: '#5a4a3d',
-                fontSize: '1.3rem',
-                margin: 0
-              }}>
-                {selectedMessage.content}
-              </p>
-            </div>
+            <h2 style={{ marginBottom: '1rem', paddingRight: '2rem' }}>{selectedMessage.subject}</h2>
+            <p style={{ color: '#666', marginBottom: '1.5rem', fontSize: '0.9rem' }}>
+              From: {selectedMessage.from}
+            </p>
+            <p style={{ lineHeight: '1.6', color: '#333' }}>
+              {selectedMessage.content}
+            </p>
 
             {showSeedAnimation && (
               <div style={{
@@ -224,7 +242,7 @@ export default function Dashboard() {
                 fontSize: '3rem',
                 pointerEvents: 'none'
               }}>
-                <img src="/small-seed.png" alt="seed" style={{ width: '3rem', height: '3rem', objectFit: 'contain' }} />
+                <img src="/small-seed.png" alt="seed" style={{ width: '1.7rem', height: '1.7rem', objectFit: 'contain' }} />
               </div>
             )}
           </div>
@@ -233,8 +251,6 @@ export default function Dashboard() {
 
       <style>
         {`
-          @import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;500;600;700&display=swap');
-          
           @keyframes seedFloat {
             0% {
               opacity: 1;
@@ -285,18 +301,36 @@ export default function Dashboard() {
           >
             Mailbox
           </button>
-          <button 
-            onClick={() => setActiveCategory('My Mentor')}
-            style={{ 
-              background: 'none', 
-              border: 'none', 
-              cursor: 'pointer',
-              fontWeight: activeCategory === 'My Mentor' ? 'bold' : 'normal',
-              fontSize: '1rem'
-            }}
-          >
-            My Pen Pal
-          </button>
+          {/* Only show My Pen Pal tab for students or matched mentors */}
+          {(userRole === 'student' || (userRole === 'mentor' && isMatched)) && (
+            <button 
+              onClick={() => setActiveCategory('My Mentor')}
+              style={{ 
+                background: 'none', 
+                border: 'none', 
+                cursor: 'pointer',
+                fontWeight: activeCategory === 'My Mentor' ? 'bold' : 'normal',
+                fontSize: '1rem'
+              }}
+            >
+              My Pen Pal
+            </button>
+          )}
+          {/* NEW: Add Find a Pen Pal button for unmatched mentors */}
+          {userRole === 'mentor' && !isMatched && (
+            <button 
+              onClick={() => setActiveCategory('Find a Pen Pal')}
+              style={{ 
+                background: 'none', 
+                border: 'none', 
+                cursor: 'pointer',
+                fontWeight: activeCategory === 'Find a Pen Pal' ? 'bold' : 'normal',
+                fontSize: '1rem'
+              }}
+            >
+              Find a Pen Pal
+            </button>
+          )}
           <button 
             onClick={() => setActiveCategory('My Account')}
             style={{ 
@@ -478,133 +512,174 @@ export default function Dashboard() {
         
         {activeCategory === 'My Mentor' && (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-            <div style={{ 
-              width: '100%',
-              maxWidth: '900px',
-              padding: '2rem',
-              backgroundColor: '#f9f9f9',
-              borderRadius: '12px',
-              border: '2px solid #e0e0e0',
-              display: 'flex',
-              gap: '2rem',
-              alignItems: 'flex-start'
-            }}>
+            {/* Show different content based on user role and status */}
+            {userRole === 'student' && !isApproved ? (
+              // Student waiting for parent approval
               <div style={{ 
-                width: '350px',
+                width: '100%',
+                maxWidth: '600px',
+                padding: '3rem',
+                backgroundColor: '#fff9e6',
+                borderRadius: '12px',
+                border: '2px solid #ffd700',
+                textAlign: 'center'
+              }}>
+                <h2 style={{ fontSize: '1.5rem', marginBottom: '1rem', color: '#333' }}>
+                  Waiting on Parent Permission
+                </h2>
+                <p style={{ fontSize: '1rem', color: '#666', lineHeight: '1.6' }}>
+                  Your parent or guardian needs to approve your account before you can be matched with a pen pal mentor. 
+                  Please ask them to check their email!
+                </p>
+              </div>
+            ) : userRole === 'student' && !isMatched ? (
+              // Student approved but not matched yet
+              <div style={{ 
+                width: '100%',
+                maxWidth: '600px',
+                padding: '3rem',
+                backgroundColor: '#e8f5e9',
+                borderRadius: '12px',
+                border: '2px solid #4caf50',
+                textAlign: 'center'
+              }}>
+                <h2 style={{ fontSize: '1.5rem', marginBottom: '1rem', color: '#333' }}>
+                  Waiting for a Pen Pal!
+                </h2>
+                <p style={{ fontSize: '1rem', color: '#666', lineHeight: '1.6' }}>
+                  You've been approved! A mentor will choose you soon and you'll be able to start writing letters.
+                </p>
+              </div>
+            ) : (
+              // Matched user (student or mentor) - show pen pal info
+              <div style={{ 
+                width: '100%',
+                maxWidth: '900px',
+                padding: '2rem',
+                backgroundColor: '#f9f9f9',
+                borderRadius: '12px',
+                border: '2px solid #e0e0e0',
                 display: 'flex',
-                flexDirection: 'column',
-                gap: '1.5rem'
+                gap: '2rem',
+                alignItems: 'flex-start'
               }}>
                 <div style={{ 
-                  width: '100%',
-                  aspectRatio: '1',
-                  backgroundColor: '#ddd',
-                  borderRadius: '12px',
-                  overflow: 'hidden',
+                  width: '350px',
                   display: 'flex',
-                  alignItems: 'center',
+                  flexDirection: 'column',
+                  gap: '1.5rem'
+                }}>
+                  <div style={{ 
+                    width: '100%',
+                    aspectRatio: '1',
+                    backgroundColor: '#ddd',
+                    borderRadius: '12px',
+                    overflow: 'hidden',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}>
+                    <img 
+                      src="/mentor-demo.png" 
+                      alt="Mentor" 
+                      style={{ 
+                        width: '100%', 
+                        height: '100%', 
+                        objectFit: 'cover' 
+                      }} 
+                    />
+                  </div>
+
+                  <h3 style={{ 
+                    fontSize: '1.5rem', 
+                    fontWeight: 'bold',
+                    textAlign: 'center',
+                    margin: 0
+                  }}>
+                    Dr. Sarah Johnson
+                  </h3>
+                </div>
+
+                <div style={{ 
+                  flex: 1,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '2rem',
                   justifyContent: 'center'
                 }}>
-                  <img 
-                    src="/mentor-demo.png" 
-                    alt="Mentor" 
-                    style={{ 
-                      width: '100%', 
-                      height: '100%', 
-                      objectFit: 'cover' 
-                    }} 
-                  />
-                </div>
+                  <div>
+                    <h4 style={{ 
+                      fontSize: '0.9rem', 
+                      color: '#666', 
+                      marginBottom: '0.75rem',
+                      fontWeight: 'bold',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.5px'
+                    }}>
+                      About
+                    </h4>
+                    <p style={{ 
+                      fontSize: '0.95rem', 
+                      lineHeight: '1.6',
+                      color: '#444'
+                    }}>
+                      Dr. Johnson is a marine biologist with over 15 years of experience studying coral reef ecosystems. She's passionate about environmental conservation and loves sharing her knowledge with the next generation of scientists.
+                    </p>
+                  </div>
 
-                <h3 style={{ 
-                  fontSize: '1.5rem', 
-                  fontWeight: 'bold',
-                  textAlign: 'center',
-                  margin: 0
-                }}>
-                  Dr. Sarah Johnson
-                </h3>
-              </div>
-
-              <div style={{ 
-                flex: 1,
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '2rem',
-                justifyContent: 'center'
-              }}>
-                <div>
-                  <h4 style={{ 
-                    fontSize: '0.9rem', 
-                    color: '#666', 
-                    marginBottom: '0.75rem',
-                    fontWeight: 'bold',
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.5px'
-                  }}>
-                    About
-                  </h4>
-                  <p style={{ 
-                    fontSize: '0.95rem', 
-                    lineHeight: '1.6',
-                    color: '#444'
-                  }}>
-                    Dr. Johnson is a marine biologist with over 15 years of experience studying coral reef ecosystems. She's passionate about environmental conservation and loves sharing her knowledge with the next generation of scientists.
-                  </p>
-                </div>
-
-                <div>
-                  <h4 style={{ 
-                    fontSize: '0.9rem', 
-                    color: '#666', 
-                    marginBottom: '0.75rem',
-                    fontWeight: 'bold',
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.5px'
-                  }}>
-                    Interests
-                  </h4>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
-                    <span style={{ 
-                      padding: '0.4rem 0.8rem',
-                      backgroundColor: '#e3f2fd',
-                      color: '#1976d2',
-                      borderRadius: '20px',
-                      fontSize: '0.85rem'
+                  <div>
+                    <h4 style={{ 
+                      fontSize: '0.9rem', 
+                      color: '#666', 
+                      marginBottom: '0.75rem',
+                      fontWeight: 'bold',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.5px'
                     }}>
-                      Marine Biology
-                    </span>
-                    <span style={{ 
-                      padding: '0.4rem 0.8rem',
-                      backgroundColor: '#e8f5e9',
-                      color: '#388e3c',
-                      borderRadius: '20px',
-                      fontSize: '0.85rem'
-                    }}>
-                      Conservation
-                    </span>
-                    <span style={{ 
-                      padding: '0.4rem 0.8rem',
-                      backgroundColor: '#fff3e0',
-                      color: '#f57c00',
-                      borderRadius: '20px',
-                      fontSize: '0.85rem'
-                    }}>
-                      Scuba Diving
-                    </span>
-                    <span style={{ 
-                      padding: '0.4rem 0.8rem',
-                      backgroundColor: '#fce4ec',
-                      color: '#c2185b',
-                      borderRadius: '20px',
-                      fontSize: '0.85rem'
-                    }}>
-                      Photography
-                    </span>
+                      Interests
+                    </h4>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+                      <span style={{ 
+                        padding: '0.4rem 0.8rem',
+                        backgroundColor: '#e3f2fd',
+                        color: '#1976d2',
+                        borderRadius: '20px',
+                        fontSize: '0.85rem'
+                      }}>
+                        Marine Biology
+                      </span>
+                      <span style={{ 
+                        padding: '0.4rem 0.8rem',
+                        backgroundColor: '#e8f5e9',
+                        color: '#388e3c',
+                        borderRadius: '20px',
+                        fontSize: '0.85rem'
+                      }}>
+                        Conservation
+                      </span>
+                      <span style={{ 
+                        padding: '0.4rem 0.8rem',
+                        backgroundColor: '#fff3e0',
+                        color: '#f57c00',
+                        borderRadius: '20px',
+                        fontSize: '0.85rem'
+                      }}>
+                        Scuba Diving
+                      </span>
+                      <span style={{ 
+                        padding: '0.4rem 0.8rem',
+                        backgroundColor: '#fce4ec',
+                        color: '#c2185b',
+                        borderRadius: '20px',
+                        fontSize: '0.85rem'
+                      }}>
+                        Photography
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
+            )}
           </div>
         )}
         
@@ -704,6 +779,123 @@ export default function Dashboard() {
                 Add Test Message
               </button>
             </div>
+          </div>
+        )}
+
+        {/* NEW: Find a Pen Pal section */}
+        {activeCategory === 'Find a Pen Pal' && userRole === 'mentor' && !isMatched && (
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            <h2 style={{ fontSize: '1.5rem', marginBottom: '1rem' }}>Find a Pen Pal</h2>
+            <p style={{ marginBottom: '2rem', color: '#666' }}>
+              Choose a student to become their pen pal mentor!
+            </p>
+            
+            {loadingStudents ? (
+              <div style={{ textAlign: 'center', padding: '3rem', color: '#666' }}>
+                Loading available students...
+              </div>
+            ) : availableStudents.length === 0 ? (
+              <div style={{ 
+                textAlign: 'center', 
+                padding: '3rem',
+                backgroundColor: 'white',
+                borderRadius: '12px',
+                color: '#666'
+              }}>
+                <p style={{ fontSize: '1.1rem', marginBottom: '0.5rem' }}>No students available at the moment</p>
+                <p style={{ fontSize: '0.9rem' }}>Check back soon!</p>
+              </div>
+            ) : (
+              <div style={{ 
+                display: 'grid', 
+                gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
+                gap: '1.5rem',
+                width: '100%',
+                maxWidth: '1200px'
+              }}>
+                {availableStudents.map(student => (
+                  <div
+                    key={student.id}
+                    style={{
+                      backgroundColor: 'white',
+                      borderRadius: '12px',
+                      padding: '1.5rem',
+                      border: '1px solid #e0e0e0',
+                      transition: 'all 0.2s',
+                      display: 'flex',
+                      flexDirection: 'column'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.transform = 'translateY(-4px)'
+                      e.currentTarget.style.boxShadow = '0 6px 12px rgba(0,0,0,0.1)'
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = 'translateY(0)'
+                      e.currentTarget.style.boxShadow = 'none'
+                    }}
+                  >
+                    <h3 style={{ 
+                      margin: '0 0 1rem 0', 
+                      fontSize: '1.3rem', 
+                      color: '#333',
+                      borderBottom: '2px solid #9CAF88',
+                      paddingBottom: '0.5rem'
+                    }}>
+                      {student.full_name || 'Student'}
+                    </h3>
+                    
+                    <div style={{ flex: 1, marginBottom: '1rem' }}>
+                      <div style={{ marginBottom: '0.75rem' }}>
+                        <strong style={{ color: '#666' }}>Grade:</strong>{' '}
+                        <span style={{ color: '#333' }}>{student.grade || 'Not specified'}</span>
+                      </div>
+                      
+                      {student.interests && (
+                        <div>
+                          <strong style={{ color: '#666' }}>Interests:</strong>
+                          <p style={{ 
+                            margin: '0.25rem 0 0 0', 
+                            color: '#333',
+                            lineHeight: '1.5'
+                          }}>
+                            {student.interests}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                    
+                    <button
+                      onClick={() => handleCreateMatch(student.id)}
+                      disabled={matchingInProgress}
+                      style={{
+                        padding: '0.75rem 1.5rem',
+                        backgroundColor: matchingInProgress ? '#ccc' : '#9CAF88',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '6px',
+                        fontSize: '1rem',
+                        cursor: matchingInProgress ? 'not-allowed' : 'pointer',
+                        fontWeight: 'bold',
+                        transition: 'background-color 0.2s',
+                        width: '100%'
+                      }}
+                      onMouseEnter={(e) => {
+                        if (!matchingInProgress) {
+                          e.target.style.backgroundColor = '#8a9e78'
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (!matchingInProgress) {
+                          e.target.style.backgroundColor = '#9CAF88'
+                        }
+                      }}
+                    >
+                      {matchingInProgress ? 'Matching...' : 'Be Their Penpal!'}
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
         
