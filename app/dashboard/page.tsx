@@ -106,7 +106,7 @@ export default function Dashboard() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: '#f5f5f0' }}>
       {/* Message Popup Modal */}
       {selectedMessage && (
         <div 
@@ -148,7 +148,7 @@ export default function Dashboard() {
                 fontSize: '0.9rem',
                 textAlign: 'center'
               }}>
-                ⚠️ This message has already been opened
+                This message has already been opened
               </div>
             )}
 
@@ -230,7 +230,8 @@ export default function Dashboard() {
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
-        position: 'relative'
+        position: 'relative',
+        backgroundColor: 'white'
       }}>
         {/* Navigation buttons */}
         <div style={{ display: 'flex', gap: '2rem' }}>
@@ -462,118 +463,137 @@ export default function Dashboard() {
         {activeCategory === 'My Mentor' && (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
             
-            {/* Mentor Information */}
+            {/* Mentor Information - Two Column Layout */}
             <div style={{ 
               width: '100%',
-              maxWidth: '500px',
+              maxWidth: '900px',
               padding: '2rem',
               backgroundColor: '#f9f9f9',
               borderRadius: '12px',
-              border: '2px solid #e0e0e0'
+              border: '2px solid #e0e0e0',
+              display: 'flex',
+              gap: '2rem',
+              alignItems: 'flex-start'
             }}>
-              {/* Mentor Profile Image */}
+              {/* Left Column - Picture and Name */}
               <div style={{ 
-                width: '100%',
-                aspectRatio: '1',
-                backgroundColor: '#ddd',
-                borderRadius: '12px',
-                marginBottom: '1.5rem',
-                overflow: 'hidden',
+                width: '350px',
                 display: 'flex',
-                alignItems: 'center',
+                flexDirection: 'column',
+                gap: '1.5rem'
+              }}>
+                {/* Mentor Profile Image */}
+                <div style={{ 
+                  width: '100%',
+                  aspectRatio: '1',
+                  backgroundColor: '#ddd',
+                  borderRadius: '12px',
+                  overflow: 'hidden',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}>
+                  <img 
+                    src="/mentor-demo.png" 
+                    alt="Mentor" 
+                    style={{ 
+                      width: '100%', 
+                      height: '100%', 
+                      objectFit: 'cover' 
+                    }} 
+                  />
+                </div>
+
+                {/* Mentor Name */}
+                <h3 style={{ 
+                  fontSize: '1.5rem', 
+                  fontWeight: 'bold',
+                  textAlign: 'center',
+                  margin: 0
+                }}>
+                  Dr. Sarah Johnson
+                </h3>
+              </div>
+
+              {/* Right Column - About and Interests */}
+              <div style={{ 
+                flex: 1,
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '2rem',
                 justifyContent: 'center'
               }}>
-                <img 
-                  src="/mentor-demo.png" 
-                  alt="Mentor" 
-                  style={{ 
-                    width: '100%', 
-                    height: '100%', 
-                    objectFit: 'cover' 
-                  }} 
-                />
-              </div>
+                {/* About Section */}
+                <div>
+                  <h4 style={{ 
+                    fontSize: '0.9rem', 
+                    color: '#666', 
+                    marginBottom: '0.75rem',
+                    fontWeight: 'bold',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.5px'
+                  }}>
+                    About
+                  </h4>
+                  <p style={{ 
+                    fontSize: '0.95rem', 
+                    lineHeight: '1.6',
+                    color: '#444'
+                  }}>
+                    Dr. Johnson is a marine biologist with over 15 years of experience studying coral reef ecosystems. She's passionate about environmental conservation and loves sharing her knowledge with the next generation of scientists.
+                  </p>
+                </div>
 
-              {/* Mentor Name */}
-              <h3 style={{ 
-                fontSize: '1.5rem', 
-                marginBottom: '0.5rem',
-                fontWeight: 'bold',
-                textAlign: 'center'
-              }}>
-                Dr. Sarah Johnson
-              </h3>
-
-              {/* Mentor Description */}
-              <div style={{ marginBottom: '1.5rem', marginTop: '2rem' }}>
-                <h4 style={{ 
-                  fontSize: '0.9rem', 
-                  color: '#666', 
-                  marginBottom: '0.75rem',
-                  fontWeight: 'bold',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.5px'
-                }}>
-                  About
-                </h4>
-                <p style={{ 
-                  fontSize: '0.95rem', 
-                  lineHeight: '1.6',
-                  color: '#444'
-                }}>
-                  Dr. Johnson is a marine biologist with over 15 years of experience studying coral reef ecosystems. She's passionate about environmental conservation and loves sharing her knowledge with the next generation of scientists.
-                </p>
-              </div>
-
-              {/* Mentor Interests */}
-              <div>
-                <h4 style={{ 
-                  fontSize: '0.9rem', 
-                  color: '#666', 
-                  marginBottom: '0.75rem',
-                  fontWeight: 'bold',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.5px'
-                }}>
-                  Interests
-                </h4>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
-                  <span style={{ 
-                    padding: '0.4rem 0.8rem',
-                    backgroundColor: '#e3f2fd',
-                    color: '#1976d2',
-                    borderRadius: '20px',
-                    fontSize: '0.85rem'
+                {/* Interests Section */}
+                <div>
+                  <h4 style={{ 
+                    fontSize: '0.9rem', 
+                    color: '#666', 
+                    marginBottom: '0.75rem',
+                    fontWeight: 'bold',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.5px'
                   }}>
-                    Marine Biology
-                  </span>
-                  <span style={{ 
-                    padding: '0.4rem 0.8rem',
-                    backgroundColor: '#e8f5e9',
-                    color: '#388e3c',
-                    borderRadius: '20px',
-                    fontSize: '0.85rem'
-                  }}>
-                    Conservation
-                  </span>
-                  <span style={{ 
-                    padding: '0.4rem 0.8rem',
-                    backgroundColor: '#fff3e0',
-                    color: '#f57c00',
-                    borderRadius: '20px',
-                    fontSize: '0.85rem'
-                  }}>
-                    Scuba Diving
-                  </span>
-                  <span style={{ 
-                    padding: '0.4rem 0.8rem',
-                    backgroundColor: '#fce4ec',
-                    color: '#c2185b',
-                    borderRadius: '20px',
-                    fontSize: '0.85rem'
-                  }}>
-                    Photography
-                  </span>
+                    Interests
+                  </h4>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+                    <span style={{ 
+                      padding: '0.4rem 0.8rem',
+                      backgroundColor: '#e3f2fd',
+                      color: '#1976d2',
+                      borderRadius: '20px',
+                      fontSize: '0.85rem'
+                    }}>
+                      Marine Biology
+                    </span>
+                    <span style={{ 
+                      padding: '0.4rem 0.8rem',
+                      backgroundColor: '#e8f5e9',
+                      color: '#388e3c',
+                      borderRadius: '20px',
+                      fontSize: '0.85rem'
+                    }}>
+                      Conservation
+                    </span>
+                    <span style={{ 
+                      padding: '0.4rem 0.8rem',
+                      backgroundColor: '#fff3e0',
+                      color: '#f57c00',
+                      borderRadius: '20px',
+                      fontSize: '0.85rem'
+                    }}>
+                      Scuba Diving
+                    </span>
+                    <span style={{ 
+                      padding: '0.4rem 0.8rem',
+                      backgroundColor: '#fce4ec',
+                      color: '#c2185b',
+                      borderRadius: '20px',
+                      fontSize: '0.85rem'
+                    }}>
+                      Photography
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -886,7 +906,7 @@ export default function Dashboard() {
                   cursor: 'pointer',
                   fontWeight: 'bold'
                 }}>
-                  DELETE ACCOUNT
+                  Delete Account
                 </button>
               </div>
             </div>
