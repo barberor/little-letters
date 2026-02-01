@@ -37,7 +37,9 @@ export default function LoginPage() {
 
     const role = data.user?.user_metadata?.role;
 
-    if (role === "mentor" || role === "student") {
+    if (role === "parent") {
+      router.push("/parentdashboard");
+    } else if (role === "student" || role === "mentor") {
       router.push("/dashboard");
     } else {
       router.push("/");
@@ -45,24 +47,9 @@ export default function LoginPage() {
   };
 
   return (
-    <main
-      className="min-h-screen flex items-center justify-center px-4"
-      style={{
-        background: "radial-gradient(circle at top, #fafaf7, #f5f5f0)",
-      }}
-    >
-      <div className="w-full max-w-md bg-white/70 rounded-3xl p-8 shadow-sm space-y-6">
-
-        <h1
-          className="text-3xl font-semibold text-center"
-          style={{ color: "#8B6F5B" }}
-        >
-          Welcome back
-        </h1>
-
-        <p className="text-sm text-center text-[#6f5a4d]">
-          We’re glad you’re here.
-        </p>
+    <main className="min-h-screen flex items-center justify-center px-4">
+      <div className="w-full max-w-md bg-white/70 rounded-3xl p-8 space-y-6">
+        <h1 className="text-3xl font-semibold text-center">Welcome back</h1>
 
         <div className="space-y-3">
           <input
@@ -70,7 +57,7 @@ export default function LoginPage() {
             placeholder="Email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full rounded-xl border border-[#d6cfc8] px-4 py-2 bg-white"
+            className="w-full rounded-xl border px-4 py-2"
           />
 
           <input
@@ -78,23 +65,21 @@ export default function LoginPage() {
             placeholder="Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full rounded-xl border border-[#d6cfc8] px-4 py-2 bg-white"
+            className="w-full rounded-xl border px-4 py-2"
           />
         </div>
 
-        {error && (
-          <p className="text-sm text-red-600 text-center">{error}</p>
-        )}
+        {error && <p className="text-red-600 text-sm text-center">{error}</p>}
 
         <button
           onClick={handleLogin}
           disabled={loading}
-          className="w-full rounded-2xl py-3 text-lg font-medium bg-[#9CAF88] text-white transition-all hover:scale-105 disabled:opacity-50"
+          className="w-full rounded-2xl py-3 bg-[#9CAF88] text-white"
         >
           {loading ? "Signing in..." : "Sign in"}
         </button>
 
-        <p className="text-sm text-center text-[#6f5a4d]">
+        <p className="text-sm text-center">
           Don’t have an account?{" "}
           <Link href="/signup" className="underline">
             Sign up
