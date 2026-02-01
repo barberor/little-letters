@@ -33,31 +33,21 @@ export default function SignUpPage() {
   const handleSignUp = async () => {
     setError(null);
 
-    // ---- VALIDATION ----
     if (!role) return setError("Please select a role.");
     if (!email || !password) return setError("Missing required fields.");
-    if (password !== confirmPassword)
-      return setError("Passwords do not match.");
-
-    if (role === "parent" && !childEmail) {
+    if (password !== confirmPassword) return setError("Passwords do not match.");
+    if (role === "parent" && !childEmail)
       return setError("Please enter your child’s email.");
-    }
-
-    if (role === "student" && !grade) {
+    if (role === "student" && !grade)
       return setError("Please enter your grade.");
-    }
 
     setLoading(true);
 
-    // ---- AUTH SIGNUP ----
     const { data, error: authError } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        data: {
-          role,
-          fullName,
-        },
+        data: { role, fullName },
       },
     });
 
@@ -68,51 +58,31 @@ export default function SignUpPage() {
 
     const userId = data.user.id;
 
-    // ---- PROFILE INSERT (EXPLICIT, DETERMINISTIC) ----
-    const { error: profileError } = await supabase
-      .from("profiles")
-      .insert({
-        id: userId,
-
-        // always store email explicitly
-        email: email,
-
-        role: role,
-        full_name: fullName,
-
-        // relationships
-        child_email: role === "parent" ? childEmail : null,
-
-        // student-specific
-        grade: role === "student" ? grade : null,
-        interests: interests || null,
-
-        // control flags
-        approved: role === "student" ? false : null,
-        matched: role === "student" || role === "mentor" ? false : null,
-      });
+    const { error: profileError } = await supabase.from("profiles").insert({
+      id: userId,
+      email,
+      role,
+      full_name: fullName,
+      child_email: role === "parent" ? childEmail : null,
+      grade: role === "student" ? grade : null,
+      interests: interests || null,
+      approved: role === "student" ? false : null,
+      matched: role === "student" || role === "mentor" ? false : null,
+    });
 
     if (profileError) {
-      console.error("PROFILE INSERT ERROR:", profileError);
       setLoading(false);
-      setError("Account created, but profile failed to save.");
-      return;
+      return setError("Account created, but profile failed to save.");
     }
 
     setLoading(false);
-
-    // ---- ROUTING ----
-    if (role === "parent") {
-      router.push("/parentdashboard");
-    } else {
-      router.push("/dashboard");
-    }
+    router.push(role === "parent" ? "/parentdashboard" : "/dashboard");
   };
 
   return (
-    <main className="min-h-screen flex items-center justify-center px-4">
-      <div className="w-full max-w-md bg-white/70 rounded-3xl p-8 space-y-3">
-        <h1 className="text-3xl font-semibold text-center">
+    <main className="min-h-screen flex items-center justify-center bg-[#f5f5f0] px-4">
+      <div className="w-full max-w-md bg-white/70 rounded-3xl p-8 space-y-6 shadow-sm">
+        <h1 className="text-3xl font-semibold text-center text-[#8B6F5B]">
           Create your account
         </h1>
 
@@ -122,7 +92,7 @@ export default function SignUpPage() {
               <button
                 key={r}
                 onClick={() => setRole(r)}
-                className="w-full rounded-xl border py-2"
+                className="w-full rounded-xl border border-[#d6cfc8] py-2 bg-white hover:bg-[#fafaf7] transition"
               >
                 {roleLabels[r]}
               </button>
@@ -136,16 +106,15 @@ export default function SignUpPage() {
               placeholder="Full name"
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
-              className="w-full rounded-xl border px-4 py-2"
+              className="w-full rounded-xl border border-[#d6cfc8] px-4 py-2"
             />
 
             {role === "parent" && (
               <input
-                type="email"
                 placeholder="Child’s email"
                 value={childEmail}
                 onChange={(e) => setChildEmail(e.target.value)}
-                className="w-full rounded-xl border px-4 py-2"
+                className="w-full rounded-xl border border-[#d6cfc8] px-4 py-2"
               />
             )}
 
@@ -154,7 +123,7 @@ export default function SignUpPage() {
                 placeholder="Grade"
                 value={grade}
                 onChange={(e) => setGrade(e.target.value)}
-                className="w-full rounded-xl border px-4 py-2"
+                className="w-full rounded-xl border border-[#d6cfc8] px-4 py-2"
               />
             )}
 
@@ -163,7 +132,7 @@ export default function SignUpPage() {
                 placeholder="Interests"
                 value={interests}
                 onChange={(e) => setInterests(e.target.value)}
-                className="w-full rounded-xl border px-4 py-2"
+                className="w-full rounded-xl border border-[#d6cfc8] px-4 py-2"
               />
             )}
 
@@ -172,7 +141,7 @@ export default function SignUpPage() {
               placeholder="Email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full rounded-xl border px-4 py-2"
+              className="w-full rounded-xl border border-[#d6cfc8] px-4 py-2"
             />
 
             <input
@@ -180,7 +149,7 @@ export default function SignUpPage() {
               placeholder="Password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full rounded-xl border px-4 py-2"
+              className="w-full rounded-xl border border-[#d6cfc8] px-4 py-2"
             />
 
             <input
@@ -188,7 +157,7 @@ export default function SignUpPage() {
               placeholder="Confirm password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              className="w-full rounded-xl border px-4 py-2"
+              className="w-full rounded-xl border border-[#d6cfc8] px-4 py-2"
             />
 
             {error && (
@@ -198,21 +167,21 @@ export default function SignUpPage() {
             <button
               onClick={handleSignUp}
               disabled={loading}
-              className="w-full rounded-2xl py-3 bg-[#9CAF88] text-white"
+              className="w-full rounded-2xl py-3 text-lg font-medium bg-[#9CAF88] text-white transition-all hover:scale-105 disabled:opacity-50"
             >
               {loading ? "Creating account..." : "Sign up"}
             </button>
 
             <button
               onClick={() => setRole(null)}
-              className="text-sm underline w-full"
+              className="text-sm underline text-[#6f5a4d] w-full"
             >
               Change role
             </button>
           </>
         )}
 
-        <p className="text-sm text-center">
+        <p className="text-sm text-center text-[#6f5a4d]">
           Already have an account?{" "}
           <Link href="/login" className="underline">
             Sign in
