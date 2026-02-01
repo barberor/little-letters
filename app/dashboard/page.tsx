@@ -20,7 +20,7 @@ export default function Dashboard() {
   const [availableStudents, setAvailableStudents] = useState([])
   const [loadingStudents, setLoadingStudents] = useState(false)
   const [matchingInProgress, setMatchingInProgress] = useState(false)
-  const [penpalInfo, setPenpalInfo] = useState(null)
+  const [penpalInfo, setPenpalInfo] = useState<Profile | null>(null)
   const [userProfile, setUserProfile] = useState(null)
   
   // Garden state
@@ -765,7 +765,7 @@ useEffect(() => {
                       lineHeight: '1.6',
                       color: '#444'
                     }}>
-                      Dr. Johnson is a marine biologist with over 15 years of experience studying coral reef ecosystems. She's passionate about environmental conservation and loves sharing her knowledge with the next generation of scientists.
+                     {penpalInfo?.full_name || 'Your pen pal'} loves the ocean! She is majoring in environmental science and wants to protect the sea turtles at all costs. She loves to dive underwater and take photos of marine life!
                     </p>
                   </div>
 
