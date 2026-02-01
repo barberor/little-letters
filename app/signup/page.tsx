@@ -20,7 +20,7 @@ export default function SignUpPage() {
   const [role, setRole] = useState<Role | null>(null);
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
-  const [childEmail, setChildEmail] = useState(""); // ⭐ NEW
+  const [childEmail, setChildEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
@@ -33,6 +33,7 @@ export default function SignUpPage() {
   const handleSignUp = async () => {
     setError(null);
 
+    // ---- VALIDATION ----
     if (!role) return setError("Please select a role.");
     if (!email || !password) return setError("Missing required fields.");
     if (password !== confirmPassword)
@@ -42,9 +43,14 @@ export default function SignUpPage() {
       return setError("Please enter your child’s email.");
     }
 
+    if (role === "student" && !grade) {
+      return setError("Please enter your grade.");
+    }
+
     setLoading(true);
 
-    const { data, error } = await supabase.auth.signUp({
+    // ---- AUTH SIGNUP ----
+    const { data, error: authError } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -55,27 +61,48 @@ export default function SignUpPage() {
       },
     });
 
-    if (error || !data.user) {
+    if (authError || !data.user) {
       setLoading(false);
-      return setError(error?.message ?? "Signup failed.");
+      return setError(authError?.message ?? "Signup failed.");
     }
 
     const userId = data.user.id;
 
-    // 📌 Create profile row
-    await supabase.from("profiles").insert({
-      id: userId,
-      role,
-      full_name: fullName,
-      parent_id: role === "parent" ? userId : null,
-      child_email: role === "parent" ? childEmail : null,
-      grade: role === "student" ? grade : null,
-      interests: interests || null,
-    });
+    // ---- PROFILE INSERT (EXPLICIT, DETERMINISTIC) ----
+    const { error: profileError } = await supabase
+      .from("profiles")
+      .insert({
+        id: userId,
+
+        // always store email explicitly
+        email: email,
+
+        role: role,
+        full_name: fullName,
+
+        // relationships
+        parent_id: null, // NEVER self-reference
+        child_email: role === "parent" ? childEmail : null,
+
+        // student-specific
+        grade: role === "student" ? grade : null,
+        interests: interests || null,
+
+        // control flags
+        approved: role === "student" ? false : null,
+        matched: role === "student" || role === "mentor" ? false : null,
+      });
+
+    if (profileError) {
+      console.error("PROFILE INSERT ERROR:", profileError);
+      setLoading(false);
+      setError("Account created, but profile failed to save.");
+      return;
+    }
 
     setLoading(false);
 
-    // 🚀 ROUTING
+    // ---- ROUTING ----
     if (role === "parent") {
       router.push("/parentdashboard");
     } else {
@@ -113,7 +140,6 @@ export default function SignUpPage() {
               className="w-full rounded-xl border px-4 py-2"
             />
 
-            {/* 👨‍👩‍👧 PARENT ONLY */}
             {role === "parent" && (
               <input
                 type="email"
