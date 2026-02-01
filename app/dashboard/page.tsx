@@ -1331,6 +1331,7 @@ useEffect(() => {
             value={userProfile?.interests || ''}
             placeholder="Enter your hobbies and interests..."
             rows="4"
+            readOnly
             style={{
               width: '100%',
               padding: '0.75rem',
