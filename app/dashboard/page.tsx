@@ -21,6 +21,7 @@ export default function Dashboard() {
   const [loadingStudents, setLoadingStudents] = useState(false)
   const [matchingInProgress, setMatchingInProgress] = useState(false)
   const [penpalInfo, setPenpalInfo] = useState(null)
+  const [userProfile, setUserProfile] = useState(null)
   
   // Garden state
   const [seeds, setSeeds] = useState(3)
@@ -48,17 +49,20 @@ export default function Dashboard() {
   const [selectedMessage, setSelectedMessage] = useState(null)
   const [showSeedAnimation, setShowSeedAnimation] = useState(false)
 
-  // NEW: Fetch user data on mount
+ // NEW: Fetch user data on mount
 useEffect(() => {
   const fetchUserData = async () => {
     try {
       const response = await fetch('/api/me/profile')
       if (response.ok) {
         const profile = await response.json()
+        setUserProfile(profile)  // Add this line
         setUserRole(profile.role)
         setIsMatched(profile.matched)
         setIsApproved(profile.approved)
         setSeeds(parseInt(profile.seed_count) || 3)
+
+        // ... rest of penpal fetching code
       }
     } catch (error) {
       console.error('Error fetching user data:', error)
@@ -1037,128 +1041,108 @@ useEffect(() => {
           </div>
         )}
         
-        {activeCategory === 'My Account' && (
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
-            <div style={{ 
-              display: 'flex',
-              gap: '2rem',
+       {activeCategory === 'My Account' && (
+  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
+    <div style={{ 
+      display: 'flex',
+      gap: '2rem',
+      width: '100%',
+      maxWidth: '1200px',
+      alignItems: 'stretch'
+    }}>
+      <div style={{ 
+        flex: 1,
+        backgroundColor: '#f9f9f9',
+        borderRadius: '12px',
+        padding: '2rem',
+        border: '1px solid #e0e0e0'
+      }}>
+        <h2 style={{ marginBottom: '1.5rem', fontSize: '1.3rem' }}>Account Information</h2>
+        
+        <div style={{ marginBottom: '1rem' }}>
+          <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold', fontSize: '0.9rem' }}>
+            Name
+          </label>
+          <input 
+            type="text"
+            value={userProfile?.full_name || ''}
+            disabled
+            style={{
               width: '100%',
-              maxWidth: '1200px',
-              alignItems: 'stretch'
-            }}>
-              <div style={{ 
-                flex: 1,
-                backgroundColor: '#f9f9f9',
-                borderRadius: '12px',
-                padding: '2rem',
-                border: '1px solid #e0e0e0'
-              }}>
-                <h2 style={{ marginBottom: '1.5rem', fontSize: '1.3rem' }}>Account Information</h2>
-                
-                <div style={{ marginBottom: '1rem' }}>
-                  <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold', fontSize: '0.9rem' }}>
-                    Name
-                  </label>
-                  <input 
-                    type="text"
-                    value="John Doe"
-                    disabled
-                    style={{
-                      width: '100%',
-                      padding: '0.75rem',
-                      borderRadius: '6px',
-                      border: '1px solid #ccc',
-                      backgroundColor: '#e9e9e9',
-                      color: '#888',
-                      fontSize: '1rem',
-                      cursor: 'not-allowed'
-                    }}
-                  />
-                </div>
+              padding: '0.75rem',
+              borderRadius: '6px',
+              border: '1px solid #ccc',
+              backgroundColor: '#e9e9e9',
+              color: '#888',
+              fontSize: '1rem',
+              cursor: 'not-allowed'
+            }}
+          />
+        </div>
 
-                <div style={{ marginBottom: '1rem' }}>
-                  <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold', fontSize: '0.9rem' }}>
-                    Email
-                  </label>
-                  <input 
-                    type="email"
-                    value="johndoe@example.com"
-                    disabled
-                    style={{
-                      width: '100%',
-                      padding: '0.75rem',
-                      borderRadius: '6px',
-                      border: '1px solid #ccc',
-                      backgroundColor: '#e9e9e9',
-                      color: '#888',
-                      fontSize: '1rem',
-                      cursor: 'not-allowed'
-                    }}
-                  />
-                </div>
+        <div style={{ marginBottom: '1rem' }}>
+          <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold', fontSize: '0.9rem' }}>
+            Email
+          </label>
+          <input 
+            type="email"
+            value={userProfile?.email || ''}
+            disabled
+            style={{
+              width: '100%',
+              padding: '0.75rem',
+              borderRadius: '6px',
+              border: '1px solid #ccc',
+              backgroundColor: '#e9e9e9',
+              color: '#888',
+              fontSize: '1rem',
+              cursor: 'not-allowed'
+            }}
+          />
+        </div>
 
-                <div style={{ marginBottom: '1rem' }}>
-                  <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold', fontSize: '0.9rem' }}>
-                    Grade Level
-                  </label>
-                  <input 
-                    type="text"
-                    value="10th Grade"
-                    disabled
-                    style={{
-                      width: '100%',
-                      padding: '0.75rem',
-                      borderRadius: '6px',
-                      border: '1px solid #ccc',
-                      backgroundColor: '#e9e9e9',
-                      color: '#888',
-                      fontSize: '1rem',
-                      cursor: 'not-allowed'
-                    }}
-                  />
-                </div>
+        <div style={{ marginBottom: '1rem' }}>
+          <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold', fontSize: '0.9rem' }}>
+            Grade Level
+          </label>
+          <input 
+            type="text"
+            value={userProfile?.grade || 'Not specified'}
+            disabled
+            style={{
+              width: '100%',
+              padding: '0.75rem',
+              borderRadius: '6px',
+              border: '1px solid #ccc',
+              backgroundColor: '#e9e9e9',
+              color: '#888',
+              fontSize: '1rem',
+              cursor: 'not-allowed'
+            }}
+          />
+        </div>
 
-                <div style={{ marginBottom: '1rem' }}>
-                  <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold', fontSize: '0.9rem' }}>
-                    Guardian
-                  </label>
-                  <input 
-                    type="text"
-                    value="Jane Doe"
-                    disabled
-                    style={{
-                      width: '100%',
-                      padding: '0.75rem',
-                      borderRadius: '6px',
-                      border: '1px solid #ccc',
-                      backgroundColor: '#e9e9e9',
-                      color: '#888',
-                      fontSize: '1rem',
-                      cursor: 'not-allowed'
-                    }}
-                  />
-                </div>
-
-                <div style={{ marginBottom: '1rem' }}>
-                  <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold', fontSize: '0.9rem' }}>
-                    Hobbies & Interests
-                  </label>
-                  <textarea 
-                    placeholder="Enter your hobbies and interests..."
-                    rows="4"
-                    style={{
-                      width: '100%',
-                      padding: '0.75rem',
-                      borderRadius: '6px',
-                      border: '1px solid #ccc',
-                      backgroundColor: 'white',
-                      fontSize: '1rem',
-                      resize: 'vertical',
-                      fontFamily: 'inherit'
-                    }}
-                  />
-                </div>
-              </div>
+        <div style={{ marginBottom: '1rem' }}>
+          <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold', fontSize: '0.9rem' }}>
+            Hobbies & Interests
+          </label>
+          <textarea 
+            value={userProfile?.interests || ''}
+            placeholder="Enter your hobbies and interests..."
+            rows="4"
+            style={{
+              width: '100%',
+              padding: '0.75rem',
+              borderRadius: '6px',
+              border: '1px solid #ccc',
+              backgroundColor: 'white',
+              fontSize: '1rem',
+              resize: 'vertical',
+              fontFamily: 'inherit'
+            }}
+          />
+        </div>
+      </div>
 
               <div style={{ 
                 width: '400px',
