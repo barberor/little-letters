@@ -111,6 +111,19 @@ useEffect(() => {
     }
   }
 
+  const handleLogout = async () => {
+  try {
+    const response = await fetch('/api/auth/logout', {
+      method: 'POST',
+    })
+    if (response.ok) {
+      window.location.href = '/'
+    }
+  } catch (error) {
+    console.error('Logout error:', error)
+  }
+}
+
   const plantSeed = (plotId) => {
     if (seeds <= 0) {
       alert('No seeds available!')
@@ -415,17 +428,42 @@ useEffect(() => {
           />
         </div>
 
-        <div style={{ 
+      <div style={{ 
           fontSize: '1.1rem', 
           fontWeight: 'bold',
           display: 'flex',
           alignItems: 'center',
-          gap: '0.5rem'
+          gap: '1rem'
         }}>
-          <span>
-            <img src="/small-seed.png" alt="seed" style={{ width: '1.7rem', height: '1.7rem', objectFit: 'contain' }} />
-          </span>
-          <span>Seeds: {seeds}</span>
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem'
+          }}>
+            <span>
+              <img src="/small-seed.png" alt="seed" style={{ width: '1.7rem', height: '1.7rem', objectFit: 'contain' }} />
+            </span>
+            <span>Seeds: {seeds}</span>
+          </div>
+          
+          <button
+            onClick={handleLogout}
+            style={{
+              padding: '0.5rem 1rem',
+              backgroundColor: '#9CAF88',
+              color: 'white',
+              border: 'none',
+              borderRadius: '6px',
+              fontSize: '0.9rem',
+              cursor: 'pointer',
+              fontWeight: 'bold',
+              transition: 'background-color 0.2s'
+            }}
+            onMouseEnter={(e) => e.target.style.backgroundColor = '#8a9e78'}
+            onMouseLeave={(e) => e.target.style.backgroundColor = '#9CAF88'}
+          >
+            Logout
+          </button>
         </div>
       </div>
 
