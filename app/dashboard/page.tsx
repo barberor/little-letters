@@ -1,35 +1,57 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 
 type Profile = {
   id: string
   full_name: string
+  email: string
   grade: string
   interests: string
   role: string
+  matched: boolean
+  approved: boolean
+  seed_count: string
+}
+
+type Student = {
+  id: string
+  full_name: string
+  grade: string
+  interests: string
+}
+
+type Message = {
+  id: number
+  isOpen: boolean
+  from: string
+  subject: string
+  content: string
+  to?: string
+}
+
+type Plot = {
+  id: number
+  stage: 'empty' | 'seed' | 'sprouting' | 'growing' | 'grown'
+  plantedAt: number | null
 }
 
 export default function Dashboard() {
-  const [activeCategory, setActiveCategory] = useState('My Garden')
+  const [activeCategory, setActiveCategory] = useState<string>('My Garden')
   
-  // NEW: Add these states for matching functionality
-  const [userRole, setUserRole] = useState('mentor')
-  const [isMatched, setIsMatched] = useState(false)
-  const [isApproved, setIsApproved] = useState(true)
-  const [availableStudents, setAvailableStudents] = useState([])
-  const [loadingStudents, setLoadingStudents] = useState(false)
-  const [matchingInProgress, setMatchingInProgress] = useState(false)
+  // User/matching state (from document 4)
+  const [userRole, setUserRole] = useState<string>('mentor')
+  const [isMatched, setIsMatched] = useState<boolean>(false)
+  const [isApproved, setIsApproved] = useState<boolean>(true)
+  const [availableStudents, setAvailableStudents] = useState<Student[]>([])
+  const [loadingStudents, setLoadingStudents] = useState<boolean>(false)
+  const [matchingInProgress, setMatchingInProgress] = useState<boolean>(false)
   const [penpalInfo, setPenpalInfo] = useState<Profile | null>(null)
-  const [userProfile, setUserProfile] = useState(null)
-  const [showComposeModal, setShowComposeModal] = useState(false)
-  const [letterContent, setLetterContent] = useState('')
-  const [letterSubject, setLetterSubject] = useState('')
-  const [sendingLetter, setSendingLetter] = useState(false)
+  const [userProfile, setUserProfile] = useState<Profile | null>(null)
   
   // Garden state
-  const [seeds, setSeeds] = useState(3)
-  const [plots, setPlots] = useState([
+  const [seeds, setSeeds] = useState<number>(3)
+  const [plots, setPlots] = useState<Plot[]>([
     { id: 0, stage: 'empty', plantedAt: null },
     { id: 1, stage: 'empty', plantedAt: null },
     { id: 2, stage: 'empty', plantedAt: null },
@@ -41,8 +63,7 @@ export default function Dashboard() {
   ])
 
   // Mailbox state
-  const [mailboxTab, setMailboxTab] = useState('received')
-  const [messages, setMessages] = useState([
+  const [messages, setMessages] = useState<Message[]>([
     { id: 0, isOpen: false, from: 'Dr. Sarah Johnson', subject: 'Welcome to the mentorship program!', content: 'Welcome to our mentorship program! I\'m excited to be your mentor and help you grow in your learning journey.' },
     { id: 1, isOpen: false, from: 'System', subject: 'You earned 3 seeds!', content: 'Congratulations! You\'ve earned 3 seeds for completing your first week. Plant them in your garden!' },
     { id: 2, isOpen: true, from: 'Dr. Sarah Johnson', subject: 'Great progress this week', content: 'I\'ve noticed your great progress this week. Keep up the excellent work!' },
@@ -51,57 +72,67 @@ export default function Dashboard() {
     { id: 5, isOpen: true, from: 'System', subject: 'Weekly summary', content: 'Here\'s your weekly summary of activities and achievements.' },
   ])
 
-  const [sentMessages, setSentMessages] = useState([
-    { id: 0, isOpen: true, to: 'Dr. Sarah Johnson', subject: 'Thank you for mentoring me!', content: 'Thank you so much for being my mentor. I really appreciate your guidance and support!' },
-    { id: 1, isOpen: true, to: 'Dr. Sarah Johnson', subject: 'Question about marine biology', content: 'I had a question about the marine biology topic we discussed. Could you explain more about coral reef ecosystems?' },
-    { id: 2, isOpen: true, to: 'Community', subject: 'My garden progress', content: 'I wanted to share my garden progress with everyone. I\'ve planted 5 seeds and they\'re all growing well!' },
+  const [sentMessages, setSentMessages] = useState<Message[]>([
+    { id: 0, to: 'Dr. Sarah Johnson', isOpen: true, from: '', subject: 'Thank you for mentoring me!', content: 'I really appreciate all your guidance and support. Looking forward to learning more!' },
+    { id: 1, to: 'Dr. Sarah Johnson', isOpen: true, from: '', subject: 'Question about marine biology', content: 'I have some questions about the coral reef project we discussed. When would be a good time to chat?' },
+    { id: 2, to: 'Community', isOpen: true, from: '', subject: 'My garden progress', content: 'Just wanted to share that I planted my first seeds today! So excited to see them grow.' },
   ])
 
-  const [selectedMessage, setSelectedMessage] = useState(null)
-  const [showSeedAnimation, setShowSeedAnimation] = useState(false)
+  const [mailboxView, setMailboxView] = useState<string>('received')
+  const [selectedMessage, setSelectedMessage] = useState<Message | null>(null)
+  const [showSeedAnimation, setShowSeedAnimation] = useState<boolean>(false)
+  
+  // Compose state - FULL FEATURED from document 3
+  const [showCompose, setShowCompose] = useState<boolean>(false)
+  const [composeRecipient, setComposeRecipient] = useState<string>('')
+  const [composeSubject, setComposeSubject] = useState<string>('')
+  const [composeMessage, setComposeMessage] = useState<string>('')
 
-useEffect(() => {
-  const fetchUserData = async () => {
-    try {
-      const response = await fetch('/api/me/profile')
-      if (response.ok) {
-        const profile = await response.json()
-        setUserProfile(profile)
-        setUserRole(profile.role)
-        setIsMatched(profile.matched)
-        setIsApproved(profile.approved)
-        setSeeds(parseInt(profile.seed_count) || 3)
+  // Fetch user data on mount
+  useEffect(() => {
+    const fetchUserData = async (): Promise<void> => {
+      try {
+        const response = await fetch('/api/me/profile')
+        if (response.ok) {
+          const profile = await response.json()
+          setUserProfile(profile)
+          setUserRole(profile.role)
+          setIsMatched(profile.matched)
+          setIsApproved(profile.approved)
+          setSeeds(parseInt(profile.seed_count) || 3)
 
-        if (profile.matched) {
-          const matchResponse = await fetch('/api/match')
-          if (matchResponse.ok) {
-            const matchData = await matchResponse.json()
-            if (matchData) {
-              const penpalId = profile.role === 'mentor' ? matchData.student_id : matchData.mentor_id
-              
-              const penpalResponse = await fetch(`/api/profiles/${penpalId}`)
-              if (penpalResponse.ok) {
-                const penpal = await penpalResponse.json()
-                setPenpalInfo(penpal)
+          // If user is matched, fetch their penpal info
+          if (profile.matched) {
+            const matchResponse = await fetch('/api/match')
+            if (matchResponse.ok) {
+              const matchData = await matchResponse.json()
+              if (matchData) {
+                const penpalId = profile.role === 'mentor' ? matchData.student_id : matchData.mentor_id
+                
+                const penpalResponse = await fetch(`/api/profiles/${penpalId}`)
+                if (penpalResponse.ok) {
+                  const penpal = await response.json()
+                  setPenpalInfo(penpal)
+                }
               }
             }
           }
         }
+      } catch (error) {
+        console.error('Error fetching user data:', error)
       }
-    } catch (error) {
-      console.error('Error fetching user data:', error)
     }
-  }
-  fetchUserData()
-}, [])
+    fetchUserData()
+  }, [])
 
+  // Fetch students when mentor views Find a Pen Pal
   useEffect(() => {
     if (activeCategory === 'Find a Pen Pal' && userRole === 'mentor' && !isMatched) {
       fetchAvailableStudents()
     }
   }, [activeCategory, userRole, isMatched])
 
-  const fetchAvailableStudents = async () => {
+  const fetchAvailableStudents = async (): Promise<void> => {
     setLoadingStudents(true)
     try {
       const response = await fetch('/api/students/available')
@@ -116,7 +147,7 @@ useEffect(() => {
     }
   }
 
-  const handleCreateMatch = async (studentId) => {
+  const handleCreateMatch = async (studentId: string): Promise<void> => {
     if (matchingInProgress) return
     
     setMatchingInProgress(true)
@@ -145,27 +176,27 @@ useEffect(() => {
     }
   }
 
-  const handleLogout = async () => {
-  try {
-    const response = await fetch('/api/auth/logout', {
-      method: 'POST',
-    })
-    if (response.ok) {
-      window.location.href = '/'
+  const handleLogout = async (): Promise<void> => {
+    try {
+      const response = await fetch('/api/auth/logout', {
+        method: 'POST',
+      })
+      if (response.ok) {
+        window.location.href = '/'
+      }
+    } catch (error) {
+      console.error('Logout error:', error)
     }
-  } catch (error) {
-    console.error('Logout error:', error)
   }
-}
 
-  const plantSeed = (plotId) => {
+  const plantSeed = (plotId: number): void => {
     if (seeds <= 0) {
       alert('No seeds available!')
       return
     }
 
     const plot = plots.find(p => p.id === plotId)
-    if (plot.stage !== 'empty') {
+    if (plot && plot.stage !== 'empty') {
       alert('This plot is already planted!')
       return
     }
@@ -173,33 +204,26 @@ useEffect(() => {
     setSeeds(seeds - 1)
     setPlots(plots.map(p => 
       p.id === plotId 
-        ? { ...p, stage: 'sprouting', plantedAt: Date.now() }
+        ? { ...p, stage: 'seed', plantedAt: Date.now() }
         : p
     ))
   }
 
-  const toggleMessage = (messageId) => {
-    const currentMessages = mailboxTab === 'received' ? messages : sentMessages
-    const message = currentMessages.find(m => m.id === messageId)
+  const toggleMessage = (messageId: number): void => {
+    const message = messages.find(m => m.id === messageId)
+    
+    if (!message) return
     
     if (message.isOpen) {
       setSelectedMessage(message)
       return
     }
 
-    if (mailboxTab === 'received') {
-      setMessages(messages.map(m => 
-        m.id === messageId 
-          ? { ...m, isOpen: true }
-          : m
-      ))
-    } else {
-      setSentMessages(sentMessages.map(m => 
-        m.id === messageId 
-          ? { ...m, isOpen: true }
-          : m
-      ))
-    }
+    setMessages(messages.map(m => 
+      m.id === messageId 
+        ? { ...m, isOpen: true }
+        : m
+    ))
 
     setSelectedMessage(message)
     setShowSeedAnimation(true)
@@ -210,69 +234,16 @@ useEffect(() => {
     }, 2000)
   }
 
-  const closeMessage = () => {
+  const closeMessage = (): void => {
     setSelectedMessage(null)
   }
 
-  const handleSendLetter = async () => {
-  if (!letterContent.trim()) {
-    alert('Please write something before sending!')
-    return
-  }
-
-  if (!letterSubject.trim()) {
-    alert('Please add a subject!')
-    return
-  }
-
-  if (!penpalInfo?.id) {
-    alert('No pen pal found!')
-    return
-  }
-
-  setSendingLetter(true)
-  try {
-    const response = await fetch('/api/letters', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        receiverId: penpalInfo.id,
-        subject: letterSubject,
-        content: letterContent,
-      }),
-    })
-
-    if (response.ok) {
-      setSentMessages([...sentMessages, {
-        id: sentMessages.length,
-        isOpen: true,
-        to: penpalInfo.full_name,
-        subject: letterSubject,
-        content: letterContent
-      }])
-      
-      alert('Letter sent successfully!')
-      setLetterContent('')
-      setLetterSubject('')
-      setShowComposeModal(false)
-    } else {
-      const error = await response.json()
-      alert(error.error || 'Failed to send letter')
-    }
-  } catch (error) {
-    console.error('Error sending letter:', error)
-    alert('An error occurred while sending the letter')
-  } finally {
-    setSendingLetter(false)
-  }
-}
-
-  const getPlotVisual = (stage) => {
+  const getPlotVisual = (stage: Plot['stage']): React.JSX.Element | string => {
     switch(stage) {
       case 'empty':
         return '➕'
+      case 'seed':
+        return <img src="/small-seed.png" alt="Seed" style={{ width: '2rem', height: '2rem', objectFit: 'contain' }} />
       case 'sprouting':
         return <img src="/sprout.png" alt="Sprout" style={{ width: '80%', height: '80%', objectFit: 'contain' }} />
       case 'growing':
@@ -286,149 +257,7 @@ useEffect(() => {
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: '#f5f5f0' }}>
-    {showComposeModal && (
-      <div 
-        style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: 'rgba(0, 0, 0, 0.5)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 1001
-        }}
-        onClick={() => setShowComposeModal(false)}
-      >
-        <div 
-          style={{
-            backgroundColor: '#fafaf7',
-            borderRadius: '16px',
-            padding: '2rem',
-            maxWidth: '600px',
-            width: '90%',
-            maxHeight: '80vh',
-            overflow: 'auto',
-            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2)',
-            border: '3px solid #E8C5B5',
-          }}
-          onClick={(e) => e.stopPropagation()}
-        >
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-            <h2 style={{ margin: 0, color: '#8B7355', fontSize: '1.8rem' }}>
-              Write to {penpalInfo?.full_name || 'Your Pen Pal'}
-            </h2>
-            <button
-              onClick={() => setShowComposeModal(false)}
-              style={{
-                background: '#E8C5B5',
-                border: 'none',
-                fontSize: '1.5rem',
-                cursor: 'pointer',
-                color: '#8B7355',
-                width: '40px',
-                height: '40px',
-                borderRadius: '50%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontWeight: 'bold',
-                transition: 'all 0.2s'
-              }}
-              onMouseEnter={(e) => {
-                e.target.style.backgroundColor = '#D9B6A6'
-                e.target.style.transform = 'scale(1.1)'
-              }}
-              onMouseLeave={(e) => {
-                e.target.style.backgroundColor = '#E8C5B5'
-                e.target.style.transform = 'scale(1)'
-              }}
-            >
-              ✕
-            </button>
-          </div>
-
-          <input
-            type="text"
-            value={letterSubject}
-            onChange={(e) => setLetterSubject(e.target.value)}
-            placeholder="Subject"
-            style={{
-              width: '100%',
-              padding: '0.75rem',
-              fontSize: '1rem',
-              borderRadius: '8px',
-              border: '2px solid #E8E3D8',
-              fontFamily: 'inherit',
-              marginBottom: '1rem'
-            }}
-          />
-
-          <textarea
-            value={letterContent}
-            onChange={(e) => setLetterContent(e.target.value)}
-            placeholder="Write your letter here..."
-            style={{
-              width: '100%',
-              minHeight: '300px',
-              padding: '1rem',
-              fontSize: '1rem',
-              borderRadius: '8px',
-              border: '2px solid #E8E3D8',
-              fontFamily: 'inherit',
-              resize: 'vertical',
-              marginBottom: '1.5rem',
-              lineHeight: '1.6'
-            }}
-          />
-
-          <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
-            <button
-              onClick={() => setShowComposeModal(false)}
-              style={{
-                padding: '0.75rem 1.5rem',
-                backgroundColor: '#ccc',
-                color: '#666',
-                border: 'none',
-                borderRadius: '6px',
-                fontSize: '1rem',
-                cursor: 'pointer',
-                fontWeight: 'bold'
-              }}
-            >
-              Cancel
-            </button>
-            <button
-              onClick={handleSendLetter}
-              disabled={sendingLetter}
-              style={{
-                padding: '0.75rem 2rem',
-                backgroundColor: sendingLetter ? '#ccc' : '#9CAF88',
-                color: 'white',
-                border: 'none',
-                borderRadius: '6px',
-                fontSize: '1rem',
-                cursor: sendingLetter ? 'not-allowed' : 'pointer',
-                fontWeight: 'bold',
-                transition: 'background-color 0.2s'
-              }}
-              onMouseEnter={(e) => {
-                if (!sendingLetter) e.target.style.backgroundColor = '#8a9e78'
-              }}
-              onMouseLeave={(e) => {
-                if (!sendingLetter) e.target.style.backgroundColor = '#9CAF88'
-              }}
-            >
-              {sendingLetter ? 'Sending...' : 'Send Letter'}
-            </button>
-          </div>
-        </div>
-      </div>
-    )}
-
-
+      {/* Message Modal */}
       {selectedMessage && (
         <div 
           style={{
@@ -437,27 +266,29 @@ useEffect(() => {
             left: 0,
             right: 0,
             bottom: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            backgroundColor: 'rgba(0, 0, 0, 0.6)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            zIndex: 1000
+            zIndex: 1000,
+            backdropFilter: 'blur(4px)'
           }}
           onClick={closeMessage}
         >
           <div 
             style={{
-              backgroundColor: 'white',
-              borderRadius: '12px',
-              padding: '2rem',
-              maxWidth: '600px',
+              backgroundColor: '#fafaf7',
+              borderRadius: '24px',
+              padding: '3rem',
+              maxWidth: '650px',
               width: '90%',
               position: 'relative',
-              boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
+              boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)',
+              border: '3px solid #E8C5B5',
             }}
             onClick={(e) => e.stopPropagation()}
           >
-            {selectedMessage.isOpen && (
+            {selectedMessage.isOpen && !selectedMessage.to && (
               <div style={{
                 backgroundColor: '#fff9e6',
                 border: '1px solid #d4a574',
@@ -469,7 +300,7 @@ useEffect(() => {
                 textAlign: 'center',
                 fontWeight: 500
               }}>
-                This message has already been opened
+                You've already read this one!
               </div>
             )}
 
@@ -477,23 +308,30 @@ useEffect(() => {
               onClick={closeMessage}
               style={{
                 position: 'absolute',
-                top: '1rem',
-                right: '1rem',
-                background: 'none',
+                top: '1.5rem',
+                right: '1.5rem',
+                background: '#E8C5B5',
                 border: 'none',
                 fontSize: '1.5rem',
                 cursor: 'pointer',
-                color: '#666',
-                width: '30px',
-                height: '30px',
+                color: '#8B7355',
+                width: '40px',
+                height: '40px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 borderRadius: '50%',
-                transition: 'background-color 0.2s'
+                transition: 'all 0.2s',
+                fontWeight: 'bold'
               }}
-              onMouseEnter={(e) => e.target.style.backgroundColor = '#f0f0f0'}
-              onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = '#D9B6A6'
+                e.currentTarget.style.transform = 'scale(1.1)'
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = '#E8C5B5'
+                e.currentTarget.style.transform = 'scale(1)'
+              }}
             >
               ✕
             </button>
@@ -508,7 +346,7 @@ useEffect(() => {
               marginBottom: '1.5rem',
               fontWeight: 500
             }}>
-              {mailboxTab === 'received' ? `from: ${selectedMessage.from}` : `to: ${selectedMessage.to}`}
+              {selectedMessage.to ? `to: ${selectedMessage.to}` : `from: ${selectedMessage.from}`}
             </div>
 
             <h2 style={{ 
@@ -549,15 +387,239 @@ useEffect(() => {
                 fontSize: '3rem',
                 pointerEvents: 'none'
               }}>
-                <img src="/small-seed.png" alt="seed" style={{ width: '1.7rem', height: '1.7rem', objectFit: 'contain' }} />
+                <img src="/small-seed.png" alt="seed" style={{ width: '3rem', height: '3rem', objectFit: 'contain' }} />
               </div>
             )}
           </div>
         </div>
       )}
 
+      {/* Compose Modal - FULL FEATURED from document 3 */}
+      {showCompose && (
+        <div 
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.6)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+            backdropFilter: 'blur(4px)'
+          }}
+          onClick={() => setShowCompose(false)}
+        >
+          <div 
+            style={{
+              backgroundColor: '#fafaf7',
+              borderRadius: '24px',
+              padding: '3rem',
+              maxWidth: '650px',
+              width: '90%',
+              position: 'relative',
+              boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)',
+              border: '3px solid #E8C5B5',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setShowCompose(false)}
+              style={{
+                position: 'absolute',
+                top: '1.5rem',
+                right: '1.5rem',
+                background: '#E8C5B5',
+                border: 'none',
+                fontSize: '1.5rem',
+                cursor: 'pointer',
+                color: '#8B7355',
+                width: '40px',
+                height: '40px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                borderRadius: '50%',
+                transition: 'all 0.2s',
+                fontWeight: 'bold'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = '#D9B6A6'
+                e.currentTarget.style.transform = 'scale(1.1)'
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = '#E8C5B5'
+                e.currentTarget.style.transform = 'scale(1)'
+              }}
+            >
+              ✕
+            </button>
+
+            <h2 style={{ 
+              marginBottom: '2rem',
+              fontSize: '1.8rem',
+              color: '#8B7355',
+              fontWeight: 100,
+            }}>
+              Send a Letter
+            </h2>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+              <div>
+                <label style={{ 
+                  display: 'block', 
+                  marginBottom: '0.5rem', 
+                  fontWeight: 'bold', 
+                  fontSize: '0.9rem',
+                  color: '#8B7355'
+                }}>
+                  Recipient
+                </label>
+                <select 
+                  value={composeRecipient}
+                  onChange={(e) => setComposeRecipient(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '0.75rem',
+                    borderRadius: '12px',
+                    border: '2px solid #E8E3D8',
+                    backgroundColor: 'white',
+                    fontSize: '1rem',
+                    fontFamily: 'inherit',
+                    cursor: 'pointer'
+                  }}
+                >
+                  <option value="">Select a recipient...</option>
+                  <option value="Dr. Sarah Johnson">Dr. Sarah Johnson</option>
+                  <option value="Community">Community</option>
+                </select>
+              </div>
+
+              <div>
+                <label style={{ 
+                  display: 'block', 
+                  marginBottom: '0.5rem', 
+                  fontWeight: 'bold', 
+                  fontSize: '0.9rem',
+                  color: '#8B7355'
+                }}>
+                  Subject
+                </label>
+                <input 
+                  type="text"
+                  value={composeSubject}
+                  onChange={(e) => setComposeSubject(e.target.value)}
+                  placeholder="What's this letter about?"
+                  style={{
+                    width: '100%',
+                    padding: '0.75rem',
+                    borderRadius: '12px',
+                    border: '2px solid #E8E3D8',
+                    backgroundColor: 'white',
+                    fontSize: '1rem',
+                    fontFamily: 'inherit'
+                  }}
+                />
+              </div>
+
+              <div>
+                <label style={{ 
+                  display: 'block', 
+                  marginBottom: '0.5rem', 
+                  fontWeight: 'bold', 
+                  fontSize: '0.9rem',
+                  color: '#8B7355'
+                }}>
+                  Message
+                </label>
+                <textarea 
+                  value={composeMessage}
+                  onChange={(e) => setComposeMessage(e.target.value)}
+                  placeholder="Write your letter here..."
+                  rows={8}
+                  style={{
+                    width: '100%',
+                    padding: '0.75rem',
+                    borderRadius: '12px',
+                    border: '2px solid #E8E3D8',
+                    backgroundColor: 'white',
+                    fontSize: '1rem',
+                    resize: 'vertical',
+                    fontFamily: 'inherit',
+                    lineHeight: '1.6'
+                  }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end', marginTop: '1rem' }}>
+                <button
+                  onClick={() => {
+                    setShowCompose(false)
+                    setComposeRecipient('')
+                    setComposeSubject('')
+                    setComposeMessage('')
+                  }}
+                  style={{
+                    padding: '0.75rem 1.5rem',
+                    backgroundColor: 'transparent',
+                    color: '#8B7355',
+                    border: '2px solid #E8C5B5',
+                    borderRadius: '12px',
+                    fontSize: '1rem',
+                    cursor: 'pointer',
+                    fontWeight: 'bold'
+                  }}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => {
+                    if (!composeRecipient || !composeSubject || !composeMessage) {
+                      alert('Please fill in all fields!')
+                      return
+                    }
+                    
+                    const newMessage: Message = {
+                      id: sentMessages.length,
+                      to: composeRecipient,
+                      subject: composeSubject,
+                      content: composeMessage,
+                      isOpen: true,
+                      from: ''
+                    }
+                    
+                    setSentMessages([...sentMessages, newMessage])
+                    setShowCompose(false)
+                    setComposeRecipient('')
+                    setComposeSubject('')
+                    setComposeMessage('')
+                    setMailboxView('sent')
+                  }}
+                  style={{
+                    padding: '0.75rem 1.5rem',
+                    backgroundColor: '#9CAF88',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '12px',
+                    fontSize: '1rem',
+                    cursor: 'pointer',
+                    fontWeight: 'bold'
+                  }}
+                >
+                  Send Letter
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       <style>
         {`
+          @import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;500;600;700&display=swap');
+          
           @keyframes seedFloat {
             0% {
               opacity: 1;
@@ -574,6 +636,7 @@ useEffect(() => {
         `}
       </style>
 
+      {/* Navigation Bar */}
       <div style={{ 
         borderBottom: '1px solid #ccc', 
         padding: '1.5rem',
@@ -667,7 +730,7 @@ useEffect(() => {
           />
         </div>
 
-      <div style={{ 
+        <div style={{ 
           fontSize: '1.1rem', 
           fontWeight: 'bold',
           display: 'flex',
@@ -698,15 +761,17 @@ useEffect(() => {
               fontWeight: 'bold',
               transition: 'background-color 0.2s'
             }}
-            onMouseEnter={(e) => e.target.style.backgroundColor = '#8a9e78'}
-            onMouseLeave={(e) => e.target.style.backgroundColor = '#9CAF88'}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#8a9e78'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#9CAF88'}
           >
             Logout
           </button>
         </div>
       </div>
 
+      {/* Main Content */}
       <div style={{ flex: 1, padding: '2rem' }}>
+        {/* Garden Section */}
         {activeCategory === 'My Garden' && (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
             <p style={{ marginBottom: '2rem', color: '#666' }}>
@@ -773,7 +838,7 @@ useEffect(() => {
                     onClick={() => setSeeds(seeds + 1)}
                     style={{ 
                       padding: '0.5rem 1rem', 
-                      backgroundColor: '#4f8f63', 
+                      backgroundColor: '#9CAF88', 
                       color: 'white', 
                       border: 'none', 
                       borderRadius: '6px', 
@@ -785,12 +850,29 @@ useEffect(() => {
                   <button 
                     onClick={() => {
                       setPlots(plots.map(p => 
+                        p.stage === 'seed' ? { ...p, stage: 'sprouting' } : p
+                      ))
+                    }}
+                    style={{ 
+                      padding: '0.5rem 1rem', 
+                      backgroundColor: '#9CAF88', 
+                      color: 'white', 
+                      border: 'none', 
+                      borderRadius: '6px', 
+                      cursor: 'pointer' 
+                    }}
+                  >
+                    Sprout Seeds
+                  </button>
+                  <button 
+                    onClick={() => {
+                      setPlots(plots.map(p => 
                         p.stage === 'sprouting' ? { ...p, stage: 'growing' } : p
                       ))
                     }}
                     style={{ 
                       padding: '0.5rem 1rem', 
-                      backgroundColor: '#4f8f63', 
+                      backgroundColor: '#9CAF88', 
                       color: 'white', 
                       border: 'none', 
                       borderRadius: '6px', 
@@ -807,7 +889,7 @@ useEffect(() => {
                     }}
                     style={{ 
                       padding: '0.5rem 1rem', 
-                      backgroundColor: '#4f8f63', 
+                      backgroundColor: '#9CAF88', 
                       color: 'white', 
                       border: 'none', 
                       borderRadius: '6px', 
@@ -834,14 +916,13 @@ useEffect(() => {
                   </button>
                 </div>
                 <p style={{ marginTop: '1rem', fontSize: '0.9rem', color: '#666' }}>
-                  These buttons simulate growth stages. Later, you'll replace this with actual timers.
+                  Growth stages: Empty → Seed → Sprouting → Growing → Grown
                 </p>
               </div>
           </div>
-
-          
         )}
         
+        {/* My Pen Pal Section */}
         {activeCategory === 'My Mentor' && (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
             {userRole === 'student' && !isApproved ? (
@@ -908,8 +989,8 @@ useEffect(() => {
                     justifyContent: 'center'
                   }}>
                     <img 
-                      src="/mentor_demo.jpg" 
-                      alt="Mentor" 
+                      src="/mentor-demo.png" 
+                      alt="Pen Pal" 
                       style={{ 
                         width: '100%', 
                         height: '100%', 
@@ -924,7 +1005,7 @@ useEffect(() => {
                     textAlign: 'center',
                     margin: 0
                   }}>
-                    {penpalInfo?.full_name || 'Your Pen Pal'}
+                    {penpalInfo?.full_name || 'Dr. Sarah Johnson'}
                   </h3>
                 </div>
 
@@ -944,240 +1025,101 @@ useEffect(() => {
                       textTransform: 'uppercase',
                       letterSpacing: '0.5px'
                     }}>
-                      About
+                      {penpalInfo?.grade ? 'Grade' : 'About'}
                     </h4>
                     <p style={{ 
                       fontSize: '0.95rem', 
                       lineHeight: '1.6',
                       color: '#444'
                     }}>
-                     {penpalInfo?.full_name || 'Your pen pal'} loves the ocean! She is majoring in environmental science and wants to protect the sea turtles at all costs. She loves to dive underwater and take marine life!
+                      {penpalInfo?.grade 
+                        ? `${penpalInfo.full_name} is in ${penpalInfo.grade}.`
+                        : `${penpalInfo?.full_name || 'Your pen pal'} is a marine biologist with over 15 years of experience studying coral reef ecosystems. She's passionate about environmental conservation and loves sharing her knowledge with the next generation of scientists.`
+                      }
                     </p>
                   </div>
 
-                  <div>
-                    <h4 style={{ 
-                      fontSize: '0.9rem', 
-                      color: '#666', 
-                      marginBottom: '0.75rem',
-                      fontWeight: 'bold',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.5px'
-                    }}>
-                      Interests
-                    </h4>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
-                      <span style={{ 
-                        padding: '0.4rem 0.8rem',
-                        backgroundColor: '#e3f2fd',
-                        color: '#1976d2',
-                        borderRadius: '20px',
-                        fontSize: '0.85rem'
+                  {penpalInfo?.interests && (
+                    <div>
+                      <h4 style={{ 
+                        fontSize: '0.9rem', 
+                        color: '#666', 
+                        marginBottom: '0.75rem',
+                        fontWeight: 'bold',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.5px'
                       }}>
-                        Marine Biology
-                      </span>
-                      <span style={{ 
-                        padding: '0.4rem 0.8rem',
-                        backgroundColor: '#e8f5e9',
-                        color: '#388e3c',
-                        borderRadius: '20px',
-                        fontSize: '0.85rem'
+                        Interests
+                      </h4>
+                      <p style={{ 
+                        fontSize: '0.95rem', 
+                        lineHeight: '1.6',
+                        color: '#444'
                       }}>
-                        Conservation
-                      </span>
-                      <span style={{ 
-                        padding: '0.4rem 0.8rem',
-                        backgroundColor: '#fff3e0',
-                        color: '#f57c00',
-                        borderRadius: '20px',
-                        fontSize: '0.85rem'
-                      }}>
-                        Scuba Diving
-                      </span>
-                      <span style={{ 
-                        padding: '0.4rem 0.8rem',
-                        backgroundColor: '#fce4ec',
-                        color: '#c2185b',
-                        borderRadius: '20px',
-                        fontSize: '0.85rem'
-                      }}>
-                        Photography
-                      </span>
+                        {penpalInfo.interests}
+                      </p>
                     </div>
-                  </div>
+                  )}
+
+                  {!penpalInfo?.interests && (
+                    <div>
+                      <h4 style={{ 
+                        fontSize: '0.9rem', 
+                        color: '#666', 
+                        marginBottom: '0.75rem',
+                        fontWeight: 'bold',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.5px'
+                      }}>
+                        Interests
+                      </h4>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+                        <span style={{ 
+                          padding: '0.4rem 0.8rem',
+                          backgroundColor: '#e3f2fd',
+                          color: '#1976d2',
+                          borderRadius: '20px',
+                          fontSize: '0.85rem'
+                        }}>
+                          Marine Biology
+                        </span>
+                        <span style={{ 
+                          padding: '0.4rem 0.8rem',
+                          backgroundColor: '#e8f5e9',
+                          color: '#388e3c',
+                          borderRadius: '20px',
+                          fontSize: '0.85rem'
+                        }}>
+                          Conservation
+                        </span>
+                        <span style={{ 
+                          padding: '0.4rem 0.8rem',
+                          backgroundColor: '#fff3e0',
+                          color: '#f57c00',
+                          borderRadius: '20px',
+                          fontSize: '0.85rem'
+                        }}>
+                          Scuba Diving
+                        </span>
+                        <span style={{ 
+                          padding: '0.4rem 0.8rem',
+                          backgroundColor: '#fce4ec',
+                          color: '#c2185b',
+                          borderRadius: '20px',
+                          fontSize: '0.85rem'
+                        }}>
+                          Photography
+                        </span>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
           </div>
         )}
-        
-        {activeCategory === 'Mailbox' && (
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-            <div style={{ 
-              width: '100%',
-              maxWidth: '1200px',
-              padding: '0 1rem',
-              marginBottom: '2rem'
-            }}>
-              <div style={{ 
-                display: 'flex', 
-                gap: '2rem', 
-                borderBottom: '2px solid #e0e0e0',
-                paddingBottom: '1rem'
-              }}>
-                <button
-                  onClick={() => setMailboxTab('received')}
-                  style={{
-                    background: 'none',
-                    border: 'none',
-                    fontSize: '1.2rem',
-                    cursor: 'pointer',
-                    fontWeight: mailboxTab === 'received' ? 'bold' : 'normal',
-                    color: mailboxTab === 'received' ? '#333' : '#999',
-                    borderBottom: mailboxTab === 'received' ? '3px solid #9CAF88' : 'none',
-                    paddingBottom: '0.5rem'
-                  }}
-                >
-                  Received
-                </button>
-                <button
-                  onClick={() => setMailboxTab('sent')}
-                  style={{
-                    background: 'none',
-                    border: 'none',
-                    fontSize: '1.2rem',
-                    cursor: 'pointer',
-                    fontWeight: mailboxTab === 'sent' ? 'bold' : 'normal',
-                    color: mailboxTab === 'sent' ? '#333' : '#999',
-                    borderBottom: mailboxTab === 'sent' ? '3px solid #9CAF88' : 'none',
-                    paddingBottom: '0.5rem'
-                  }}
-                >
-                  Sent
-                </button>
-              </div>
-            </div>
 
-            {isMatched && penpalInfo && (
-              <div style={{ marginBottom: '2rem', width: '100%', maxWidth: '1200px', display: 'flex', justifyContent: 'flex-end' }}>
-                <button
-                  onClick={() => setShowComposeModal(true)}
-                  style={{
-                    padding: '0.75rem 1.5rem',
-                    backgroundColor: '#9CAF88',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '8px',
-                    fontSize: '1rem',
-                    cursor: 'pointer',
-                    fontWeight: 'bold',
-                    transition: 'background-color 0.2s'
-                  }}
-                  onMouseEnter={(e) => e.target.style.backgroundColor = '#8a9e78'}
-                  onMouseLeave={(e) => e.target.style.backgroundColor = '#9CAF88'}
-                >
-                  Send a Letter
-                </button>
-              </div>
-            )}
-
-            <div style={{ 
-              display: 'grid', 
-              gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))',
-              gap: '2rem',
-              width: '100%',
-              maxWidth: '1200px',
-              padding: '1rem'
-            }}>
-              {(mailboxTab === 'received' ? messages : sentMessages).map(message => (
-                <div
-                  key={message.id}
-                  onClick={() => toggleMessage(message.id)}
-                  style={{
-                    cursor: 'pointer',
-                    transition: 'transform 0.3s ease',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    gap: '1rem'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = 'translateY(-10px)'
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = 'translateY(0)'
-                  }}
-                >
-                  <div style={{
-                    width: '250px',
-                    height: '200px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center'
-                  }}>
-                    <img 
-                      src={message.isOpen ? '/envelope-open.png' : '/envelope-closed.png'} 
-                      alt={message.isOpen ? 'Open envelope' : 'Closed envelope'}
-                      style={{ 
-                        width: '100%', 
-                        height: '100%', 
-                        objectFit: 'contain' 
-                      }} 
-                    />
-                  </div>
-
-                  <div style={{ 
-                    textAlign: 'center',
-                    width: '100%'
-                  }}>
-                    <p style={{ 
-                      fontWeight: 'bold', 
-                      fontSize: '0.9rem',
-                      marginBottom: '0.25rem',
-                      color: '#333'
-                    }}>
-                      {mailboxTab === 'received' ? `From: ${message.from}` : `To: ${message.to}`}
-                    </p>
-                    <p style={{ 
-                      fontSize: '0.85rem',
-                      color: '#666',
-                      fontStyle: 'italic'
-                    }}>
-                      {message.subject}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div style={{ marginTop: '3rem', padding: '1.5rem', backgroundColor: '#f9f9f9', borderRadius: '8px' }}>
-              <h3 style={{ marginBottom: '1rem' }}>🧪 Demo Controls (for testing)</h3>
-              <button 
-                onClick={() => {
-                  const newId = sentMessages.length
-                  setSentMessages([...sentMessages, {
-                    id: newId,
-                    isOpen: true,
-                    to: 'Test Recipient',
-                    subject: 'Test sent message #' + (newId + 1),
-                    content: 'This is a test sent message content!'
-                  }])
-                }}
-                style={{ 
-                  padding: '0.5rem 1rem', 
-                  backgroundColor: '#4f8f63', 
-                  color: 'white', 
-                  border: 'none', 
-                  borderRadius: '6px', 
-                  cursor: 'pointer' 
-                }}
-              >
-                Add Test Sent Message
-              </button>
-            </div>
-          </div>
-        )}
-
+        {/* Find a Pen Pal Section */}
         {activeCategory === 'Find a Pen Pal' && userRole === 'mentor' && !isMatched && (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
             <h2 style={{ fontSize: '1.5rem', marginBottom: '1rem' }}>Find a Pen Pal</h2>
@@ -1276,12 +1218,12 @@ useEffect(() => {
                       }}
                       onMouseEnter={(e) => {
                         if (!matchingInProgress) {
-                          e.target.style.backgroundColor = '#8a9e78'
+                          e.currentTarget.style.backgroundColor = '#8a9e78'
                         }
                       }}
                       onMouseLeave={(e) => {
                         if (!matchingInProgress) {
-                          e.target.style.backgroundColor = '#9CAF88'
+                          e.currentTarget.style.backgroundColor = '#9CAF88'
                         }
                       }}
                     >
@@ -1294,109 +1236,402 @@ useEffect(() => {
           </div>
         )}
         
-       {activeCategory === 'My Account' && (
-  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
-    <div style={{ 
-      display: 'flex',
-      gap: '2rem',
-      width: '100%',
-      maxWidth: '1200px',
-      alignItems: 'stretch'
-    }}>
-      <div style={{ 
-        flex: 1,
-        backgroundColor: '#f9f9f9',
-        borderRadius: '12px',
-        padding: '2rem',
-        border: '1px solid #e0e0e0'
-      }}>
-        <h2 style={{ marginBottom: '1.5rem', fontSize: '1.3rem' }}>Account Information</h2>
+        {/* Mailbox Section */}
+        {activeCategory === 'Mailbox' && (
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+            <div style={{
+              width: '100%',
+              maxWidth: '1200px',
+              margin: '0 auto',
+            }}>
+              <div style={{ 
+                display: 'flex', 
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: '2rem',
+                borderBottom: '2px solid #e0e0e0',
+                paddingBottom: '0.5rem'
+              }}>
+                <div style={{ display: 'flex', gap: '1rem' }}>
+                  <button
+                    onClick={() => setMailboxView('received')}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      cursor: 'pointer',
+                      fontSize: '1.1rem',
+                      fontWeight: mailboxView === 'received' ? 'bold' : 'normal',
+                      color: mailboxView === 'received' ? '#333' : '#666',
+                      padding: '0.5rem 1rem',
+                      borderBottom: mailboxView === 'received' ? '3px solid #9CAF88' : 'none',
+                      marginBottom: '-2px'
+                    }}
+                  >
+                    Received
+                  </button>
+                  <button
+                    onClick={() => setMailboxView('sent')}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      cursor: 'pointer',
+                      fontSize: '1.1rem',
+                      fontWeight: mailboxView === 'sent' ? 'bold' : 'normal',
+                      color: mailboxView === 'sent' ? '#333' : '#666',
+                      padding: '0.5rem 1rem',
+                      borderBottom: mailboxView === 'sent' ? '3px solid #9CAF88' : 'none',
+                      marginBottom: '-2px'
+                    }}
+                  >
+                    Sent
+                  </button>
+                </div>
+                
+                <button
+                  onClick={() => setShowCompose(true)}
+                  style={{
+                    padding: '0.75rem 1.5rem',
+                    backgroundColor: '#9CAF88',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '6px',
+                    fontSize: '1rem',
+                    cursor: 'pointer',
+                    fontWeight: 'bold'
+                  }}
+                >
+                  Send a Letter
+                </button>
+              </div>
+
+              {mailboxView === 'received' && (
+                <>
+                  <div style={{ 
+                    display: 'grid', 
+                    gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))',
+                    gap: '2rem',
+                    padding: '1rem'
+                  }}>
+                    {messages.map(message => (
+                      <div
+                        key={message.id}
+                        onClick={() => toggleMessage(message.id)}
+                        style={{
+                          cursor: 'pointer',
+                          transition: 'transform 0.3s ease',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          gap: '1rem'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.transform = 'translateY(-10px)'
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.transform = 'translateY(0)'
+                        }}
+                      >
+                        <div style={{
+                          width: '250px',
+                          height: '200px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center'
+                        }}>
+                          <img 
+                            src={message.isOpen ? '/envelope-open.png' : '/envelope-closed.png'} 
+                            alt={message.isOpen ? 'Open envelope' : 'Closed envelope'}
+                            style={{ 
+                              width: '100%', 
+                              height: '100%', 
+                              objectFit: 'contain' 
+                            }} 
+                          />
+                        </div>
+
+                        <div style={{ 
+                          textAlign: 'center',
+                          width: '100%'
+                        }}>
+                          <p style={{ 
+                            fontWeight: 'bold', 
+                            fontSize: '0.9rem',
+                            marginBottom: '0.25rem',
+                            color: '#333'
+                          }}>
+                            From: {message.from}
+                          </p>
+                          <p style={{ 
+                            fontSize: '0.85rem',
+                            color: '#666',
+                            fontStyle: 'italic'
+                          }}>
+                            {message.subject}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div style={{ marginTop: '3rem', padding: '1.5rem', backgroundColor: '#f9f9f9', borderRadius: '8px' }}>
+                    <h3 style={{ marginBottom: '1rem' }}>🧪 Demo Controls (for testing)</h3>
+                    <button 
+                      onClick={() => {
+                        const newId = messages.length
+                        setMessages([...messages, {
+                          id: newId,
+                          isOpen: false,
+                          from: 'Test Sender',
+                          subject: 'Test message #' + (newId + 1),
+                          content: 'This is a test message content. Opening this will give you a seed!'
+                        }])
+                      }}
+                      style={{ 
+                        padding: '0.5rem 1rem', 
+                        backgroundColor: '#9CAF88', 
+                        color: 'white', 
+                        border: 'none', 
+                        borderRadius: '6px', 
+                        cursor: 'pointer' 
+                      }}
+                    >
+                      Add Test Message
+                    </button>
+                  </div>
+                </>
+              )}
+
+              {mailboxView === 'sent' && (
+                <>
+                  <div style={{ 
+                    display: 'grid', 
+                    gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))',
+                    gap: '2rem',
+                    padding: '1rem'
+                  }}>
+                    {sentMessages.map(message => (
+                      <div
+                        key={message.id}
+                        onClick={() => {
+                          setSelectedMessage({ 
+                            ...message,
+                            isOpen: true
+                          })
+                        }}
+                        style={{
+                          cursor: 'pointer',
+                          transition: 'transform 0.3s ease',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          gap: '1rem'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.transform = 'translateY(-10px)'
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.transform = 'translateY(0)'
+                        }}
+                      >
+                        <div style={{
+                          width: '250px',
+                          height: '200px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center'
+                        }}>
+                          <img 
+                            src='/envelope-open.png'
+                            alt='Sent envelope'
+                            style={{ 
+                              width: '100%', 
+                              height: '100%', 
+                              objectFit: 'contain' 
+                            }} 
+                          />
+                        </div>
+
+                        <div style={{ 
+                          textAlign: 'center',
+                          width: '100%'
+                        }}>
+                          <p style={{ 
+                            fontWeight: 'bold', 
+                            fontSize: '0.9rem',
+                            marginBottom: '0.25rem',
+                            color: '#333'
+                          }}>
+                            To: {message.to}
+                          </p>
+                          <p style={{ 
+                            fontSize: '0.85rem',
+                            color: '#666',
+                            fontStyle: 'italic'
+                          }}>
+                            {message.subject}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div style={{ marginTop: '3rem', padding: '1.5rem', backgroundColor: '#f9f9f9', borderRadius: '8px' }}>
+                    <h3 style={{ marginBottom: '1rem' }}>🧪 Demo Controls (for testing)</h3>
+                    <button 
+                      onClick={() => {
+                        const newId = sentMessages.length
+                        setSentMessages([...sentMessages, {
+                          id: newId,
+                          to: 'Test Recipient',
+                          subject: 'Test sent message #' + (newId + 1),
+                          content: 'This is a test sent message content.',
+                          isOpen: true,
+                          from: ''
+                        }])
+                      }}
+                      style={{ 
+                        padding: '0.5rem 1rem', 
+                        backgroundColor: '#9CAF88', 
+                        color: 'white', 
+                        border: 'none', 
+                        borderRadius: '6px', 
+                        cursor: 'pointer' 
+                      }}
+                    >
+                      Add Test Sent Message
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        )}
         
-        <div style={{ marginBottom: '1rem' }}>
-          <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold', fontSize: '0.9rem' }}>
-            Name
-          </label>
-          <input 
-            type="text"
-            value={userProfile?.full_name || ''}
-            disabled
-            style={{
+        {/* My Account Section */}
+        {activeCategory === 'My Account' && (
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
+            <div style={{ 
+              display: 'flex',
+              gap: '2rem',
               width: '100%',
-              padding: '0.75rem',
-              borderRadius: '6px',
-              border: '1px solid #ccc',
-              backgroundColor: '#e9e9e9',
-              color: '#888',
-              fontSize: '1rem',
-              cursor: 'not-allowed'
-            }}
-          />
-        </div>
+              maxWidth: '1200px',
+              alignItems: 'stretch'
+            }}>
+              <div style={{ 
+                flex: 1,
+                backgroundColor: '#f9f9f9',
+                borderRadius: '12px',
+                padding: '2rem',
+                border: '1px solid #e0e0e0'
+              }}>
+                <h2 style={{ marginBottom: '1.5rem', fontSize: '1.3rem' }}>Account Information</h2>
+                
+                <div style={{ marginBottom: '1rem' }}>
+                  <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold', fontSize: '0.9rem' }}>
+                    Name
+                  </label>
+                  <input 
+                    type="text"
+                    value={userProfile?.full_name || 'John Doe'}
+                    disabled
+                    style={{
+                      width: '100%',
+                      padding: '0.75rem',
+                      borderRadius: '6px',
+                      border: '1px solid #ccc',
+                      backgroundColor: '#e9e9e9',
+                      color: '#888',
+                      fontSize: '1rem',
+                      cursor: 'not-allowed'
+                    }}
+                  />
+                </div>
 
-        <div style={{ marginBottom: '1rem' }}>
-          <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold', fontSize: '0.9rem' }}>
-            Email
-          </label>
-          <input 
-            type="email"
-            value={userProfile?.email || ''}
-            disabled
-            style={{
-              width: '100%',
-              padding: '0.75rem',
-              borderRadius: '6px',
-              border: '1px solid #ccc',
-              backgroundColor: '#e9e9e9',
-              color: '#888',
-              fontSize: '1rem',
-              cursor: 'not-allowed'
-            }}
-          />
-        </div>
+                <div style={{ marginBottom: '1rem' }}>
+                  <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold', fontSize: '0.9rem' }}>
+                    Email
+                  </label>
+                  <input 
+                    type="email"
+                    value={userProfile?.email || 'johndoe@example.com'}
+                    disabled
+                    style={{
+                      width: '100%',
+                      padding: '0.75rem',
+                      borderRadius: '6px',
+                      border: '1px solid #ccc',
+                      backgroundColor: '#e9e9e9',
+                      color: '#888',
+                      fontSize: '1rem',
+                      cursor: 'not-allowed'
+                    }}
+                  />
+                </div>
 
-        <div style={{ marginBottom: '1rem' }}>
-          <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold', fontSize: '0.9rem' }}>
-            Grade Level
-          </label>
-          <input 
-            type="text"
-            value={userProfile?.grade || 'Not specified'}
-            disabled
-            style={{
-              width: '100%',
-              padding: '0.75rem',
-              borderRadius: '6px',
-              border: '1px solid #ccc',
-              backgroundColor: '#e9e9e9',
-              color: '#888',
-              fontSize: '1rem',
-              cursor: 'not-allowed'
-            }}
-          />
-        </div>
+                <div style={{ marginBottom: '1rem' }}>
+                  <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold', fontSize: '0.9rem' }}>
+                    Grade Level
+                  </label>
+                  <input 
+                    type="text"
+                    value={userProfile?.grade || '10th Grade'}
+                    disabled
+                    style={{
+                      width: '100%',
+                      padding: '0.75rem',
+                      borderRadius: '6px',
+                      border: '1px solid #ccc',
+                      backgroundColor: '#e9e9e9',
+                      color: '#888',
+                      fontSize: '1rem',
+                      cursor: 'not-allowed'
+                    }}
+                  />
+                </div>
 
-        <div style={{ marginBottom: '1rem' }}>
-          <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold', fontSize: '0.9rem' }}>
-            Hobbies & Interests
-          </label>
-          <textarea 
-            value={userProfile?.interests || ''}
-            placeholder="Enter your hobbies and interests..."
-            rows="4"
-            readOnly
-            style={{
-              width: '100%',
-              padding: '0.75rem',
-              borderRadius: '6px',
-              border: '1px solid #ccc',
-              backgroundColor: 'white',
-              fontSize: '1rem',
-              resize: 'vertical',
-              fontFamily: 'inherit'
-            }}
-          />
-        </div>
-      </div>
+                <div style={{ marginBottom: '1rem' }}>
+                  <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold', fontSize: '0.9rem' }}>
+                    Guardian
+                  </label>
+                  <input 
+                    type="text"
+                    value="Jane Doe"
+                    disabled
+                    style={{
+                      width: '100%',
+                      padding: '0.75rem',
+                      borderRadius: '6px',
+                      border: '1px solid #ccc',
+                      backgroundColor: '#e9e9e9',
+                      color: '#888',
+                      fontSize: '1rem',
+                      cursor: 'not-allowed'
+                    }}
+                  />
+                </div>
+
+                <div style={{ marginBottom: '1rem' }}>
+                  <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold', fontSize: '0.9rem' }}>
+                    Hobbies & Interests
+                  </label>
+                  <textarea 
+                    value={userProfile?.interests || ''}
+                    placeholder="Enter your hobbies and interests..."
+                    rows={4}
+                    readOnly
+                    style={{
+                      width: '100%',
+                      padding: '0.75rem',
+                      borderRadius: '6px',
+                      border: '1px solid #ccc',
+                      backgroundColor: 'white',
+                      fontSize: '1rem',
+                      resize: 'vertical',
+                      fontFamily: 'inherit'
+                    }}
+                  />
+                </div>
+              </div>
 
               <div style={{ 
                 width: '400px',
