@@ -1014,42 +1014,48 @@ useEffect(() => {
         {activeCategory === 'Mailbox' && (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
             <div style={{ 
-              display: 'flex', 
-              gap: '2rem', 
-              marginBottom: '2rem',
-              borderBottom: '2px solid #e0e0e0',
-              paddingBottom: '1rem'
+              width: '100%',
+              maxWidth: '1200px',
+              padding: '0 1rem',
+              marginBottom: '2rem'
             }}>
-              <button
-                onClick={() => setMailboxTab('received')}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  fontSize: '1.2rem',
-                  cursor: 'pointer',
-                  fontWeight: mailboxTab === 'received' ? 'bold' : 'normal',
-                  color: mailboxTab === 'received' ? '#333' : '#999',
-                  borderBottom: mailboxTab === 'received' ? '3px solid #9CAF88' : 'none',
-                  paddingBottom: '0.5rem'
-                }}
-              >
-                Received
-              </button>
-              <button
-                onClick={() => setMailboxTab('sent')}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  fontSize: '1.2rem',
-                  cursor: 'pointer',
-                  fontWeight: mailboxTab === 'sent' ? 'bold' : 'normal',
-                  color: mailboxTab === 'sent' ? '#333' : '#999',
-                  borderBottom: mailboxTab === 'sent' ? '3px solid #9CAF88' : 'none',
-                  paddingBottom: '0.5rem'
-                }}
-              >
-                Sent
-              </button>
+              <div style={{ 
+                display: 'flex', 
+                gap: '2rem', 
+                borderBottom: '2px solid #e0e0e0',
+                paddingBottom: '1rem'
+              }}>
+                <button
+                  onClick={() => setMailboxTab('received')}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    fontSize: '1.2rem',
+                    cursor: 'pointer',
+                    fontWeight: mailboxTab === 'received' ? 'bold' : 'normal',
+                    color: mailboxTab === 'received' ? '#333' : '#999',
+                    borderBottom: mailboxTab === 'received' ? '3px solid #9CAF88' : 'none',
+                    paddingBottom: '0.5rem'
+                  }}
+                >
+                  Received
+                </button>
+                <button
+                  onClick={() => setMailboxTab('sent')}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    fontSize: '1.2rem',
+                    cursor: 'pointer',
+                    fontWeight: mailboxTab === 'sent' ? 'bold' : 'normal',
+                    color: mailboxTab === 'sent' ? '#333' : '#999',
+                    borderBottom: mailboxTab === 'sent' ? '3px solid #9CAF88' : 'none',
+                    paddingBottom: '0.5rem'
+                  }}
+                >
+                  Sent
+                </button>
+              </div>
             </div>
 
             {isMatched && penpalInfo && (
