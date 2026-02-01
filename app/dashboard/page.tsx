@@ -2,6 +2,14 @@
 
 import { useState, useEffect } from 'react'
 
+type Profile = {
+  id: string
+  full_name: string
+  grade: string
+  interests: string
+  role: string
+}
+
 export default function Dashboard() {
   const [activeCategory, setActiveCategory] = useState('My Garden')
   
@@ -12,6 +20,7 @@ export default function Dashboard() {
   const [availableStudents, setAvailableStudents] = useState([])
   const [loadingStudents, setLoadingStudents] = useState(false)
   const [matchingInProgress, setMatchingInProgress] = useState(false)
+  const [penpalInfo, setPenpalInfo] = useState(null)
   
   // Garden state
   const [seeds, setSeeds] = useState(3)
@@ -50,6 +59,44 @@ useEffect(() => {
         setIsMatched(profile.matched)
         setIsApproved(profile.approved)
         setSeeds(parseInt(profile.seed_count) || 3)
+      }
+    } catch (error) {
+      console.error('Error fetching user data:', error)
+    }
+  }
+  fetchUserData()
+}, [])
+
+// NEW: Fetch user data on mount
+useEffect(() => {
+  const fetchUserData = async () => {
+    try {
+      const response = await fetch('/api/me/profile')
+      if (response.ok) {
+        const profile = await response.json()
+        setUserRole(profile.role)
+        setIsMatched(profile.matched)
+        setIsApproved(profile.approved)
+        setSeeds(parseInt(profile.seed_count) || 3)
+
+        // If user is matched, fetch their penpal info
+        if (profile.matched) {
+          const matchResponse = await fetch('/api/match')
+          if (matchResponse.ok) {
+            const matchData = await matchResponse.json()
+            if (matchData) {
+              // Get the penpal's ID (if you're mentor, get student; if student, get mentor)
+              const penpalId = profile.role === 'mentor' ? matchData.student_id : matchData.mentor_id
+              
+              // Fetch penpal's profile
+              const penpalResponse = await fetch(`/api/profiles/${penpalId}`)
+              if (penpalResponse.ok) {
+                const penpal = await penpalResponse.json()
+                setPenpalInfo(penpal)
+              }
+            }
+          }
+        }
       }
     } catch (error) {
       console.error('Error fetching user data:', error)
@@ -671,7 +718,7 @@ useEffect(() => {
                     justifyContent: 'center'
                   }}>
                     <img 
-                      src="/mentor-demo.png" 
+                      src="/mentor_demo.jpg" 
                       alt="Mentor" 
                       style={{ 
                         width: '100%', 
@@ -687,7 +734,7 @@ useEffect(() => {
                     textAlign: 'center',
                     margin: 0
                   }}>
-                    Dr. Sarah Johnson
+                    {penpalInfo?.full_name || 'Your Pen Pal'}
                   </h3>
                 </div>
 
