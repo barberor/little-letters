@@ -22,12 +22,12 @@ type Student = {
 }
 
 type Message = {
-  id: number
+  id: number | string
   isOpen: boolean
-  from: string
+  from?: string
+  to?: string
   subject: string
   content: string
-  to?: string
 }
 
 type Plot = {
@@ -42,7 +42,7 @@ export default function Dashboard() {
   const [userRole, setUserRole] = useState('mentor')
   const [isMatched, setIsMatched] = useState(false)
   const [isApproved, setIsApproved] = useState(true)
-  const [availableStudents, setAvailableStudents] = useState([])
+  const [availableStudents, setAvailableStudents] = useState<Student[]>([])
   const [loadingStudents, setLoadingStudents] = useState(false)
   const [matchingInProgress, setMatchingInProgress] = useState(false)
   const [penpalInfo, setPenpalInfo] = useState<Profile | null>(null)
@@ -63,10 +63,10 @@ export default function Dashboard() {
 
   // Mailbox state - NOW EMPTY, LOADED FROM DATABASE
   const [mailboxTab, setMailboxTab] = useState('received')
-  const [messages, setMessages] = useState([])
-  const [sentMessages, setSentMessages] = useState([])
+  const [messages, setMessages] = useState<Message[]>([])
+  const [sentMessages, setSentMessages] = useState<Message[]>([])
   const [loadingMessages, setLoadingMessages] = useState(false)
-  const [selectedMessage, setSelectedMessage] = useState(null)
+  const [selectedMessage, setSelectedMessage] = useState<Message | null>(null)
   const [showSeedAnimation, setShowSeedAnimation] = useState(false)
 
 useEffect(() => {
@@ -128,8 +128,8 @@ useEffect(() => {
         
         // Separate received and sent letters
         const received = letters
-          .filter(letter => letter.sender_name !== 'You')
-          .map(letter => ({
+          .filter((letter: any) => letter.sender_name !== 'You')
+          .map((letter: any) => ({
             id: letter.id,
             isOpen: false, // All letters start as unopened
             from: letter.sender_name,
@@ -138,8 +138,8 @@ useEffect(() => {
           }))
         
         const sent = letters
-          .filter(letter => letter.sender_name === 'You')
-          .map(letter => ({
+          .filter((letter: any) => letter.sender_name === 'You')
+          .map((letter: any) => ({
             id: letter.id,
             isOpen: true, // Sent letters are always "open"
             to: letter.receiver_name || 'Your Pen Pal',
@@ -246,7 +246,7 @@ useEffect(() => {
     ))
   }
 
-  const toggleMessage = (messageId: number): void => {
+  const toggleMessage = (messageId: number | string): void => {
     const message = messages.find(m => m.id === messageId)
     
     if (!message) return
@@ -279,56 +279,7 @@ useEffect(() => {
     setSelectedMessage(null)
   }
 
-  const handleSendLetter = async () => {
-  if (!letterContent.trim()) {
-    alert('Please write something before sending!')
-    return
-  }
-
-  if (!letterSubject.trim()) {
-    alert('Please add a subject!')
-    return
-  }
-
-  if (!penpalInfo?.id) {
-    alert('No pen pal found!')
-    return
-  }
-
-  setSendingLetter(true)
-  try {
-    const response = await fetch('/api/letters', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        receiverId: penpalInfo.id,
-        subject: letterSubject,
-        content: letterContent,
-      }),
-    })
-
-    if (response.ok) {
-      alert('Letter sent successfully!')
-      setLetterContent('')
-      setLetterSubject('')
-      setShowComposeModal(false)
-      // Refresh letters from database
-      fetchLetters()
-    } else {
-      const error = await response.json()
-      alert(error.error || 'Failed to send letter')
-    }
-  } catch (error) {
-    console.error('Error sending letter:', error)
-    alert('An error occurred while sending the letter')
-  } finally {
-    setSendingLetter(false)
-  }
-}
-
-  const getPlotVisual = (stage) => {
+  const getPlotVisual = (stage: string) => {
     switch(stage) {
       case 'empty':
         return '➕'
@@ -480,228 +431,6 @@ useEffect(() => {
                 <img src="/small-seed.png" alt="seed" style={{ width: '3rem', height: '3rem', objectFit: 'contain' }} />
               </div>
             )}
-          </div>
-        </div>
-      )}
-
-      {/* Compose Modal - FULL FEATURED from document 3 */}
-      {showCompose && (
-        <div 
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.6)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 1000,
-            backdropFilter: 'blur(4px)'
-          }}
-          onClick={() => setShowCompose(false)}
-        >
-          <div 
-            style={{
-              backgroundColor: '#fafaf7',
-              borderRadius: '24px',
-              padding: '3rem',
-              maxWidth: '650px',
-              width: '90%',
-              position: 'relative',
-              boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)',
-              border: '3px solid #E8C5B5',
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <button
-              onClick={() => setShowCompose(false)}
-              style={{
-                position: 'absolute',
-                top: '1.5rem',
-                right: '1.5rem',
-                background: '#E8C5B5',
-                border: 'none',
-                fontSize: '1.5rem',
-                cursor: 'pointer',
-                color: '#8B7355',
-                width: '40px',
-                height: '40px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                borderRadius: '50%',
-                transition: 'all 0.2s',
-                fontWeight: 'bold'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = '#D9B6A6'
-                e.currentTarget.style.transform = 'scale(1.1)'
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = '#E8C5B5'
-                e.currentTarget.style.transform = 'scale(1)'
-              }}
-            >
-              ✕
-            </button>
-
-            <h2 style={{ 
-              marginBottom: '2rem',
-              fontSize: '1.8rem',
-              color: '#8B7355',
-              fontWeight: 100,
-            }}>
-              Send a Letter
-            </h2>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-              <div>
-                <label style={{ 
-                  display: 'block', 
-                  marginBottom: '0.5rem', 
-                  fontWeight: 'bold', 
-                  fontSize: '0.9rem',
-                  color: '#8B7355'
-                }}>
-                  Recipient
-                </label>
-                <select 
-                  value={composeRecipient}
-                  onChange={(e) => setComposeRecipient(e.target.value)}
-                  style={{
-                    width: '100%',
-                    padding: '0.75rem',
-                    borderRadius: '12px',
-                    border: '2px solid #E8E3D8',
-                    backgroundColor: 'white',
-                    fontSize: '1rem',
-                    fontFamily: 'inherit',
-                    cursor: 'pointer'
-                  }}
-                >
-                  <option value="">Select a recipient...</option>
-                  <option value="Dr. Sarah Johnson">Dr. Sarah Johnson</option>
-                  <option value="Community">Community</option>
-                </select>
-              </div>
-
-              <div>
-                <label style={{ 
-                  display: 'block', 
-                  marginBottom: '0.5rem', 
-                  fontWeight: 'bold', 
-                  fontSize: '0.9rem',
-                  color: '#8B7355'
-                }}>
-                  Subject
-                </label>
-                <input 
-                  type="text"
-                  value={composeSubject}
-                  onChange={(e) => setComposeSubject(e.target.value)}
-                  placeholder="What's this letter about?"
-                  style={{
-                    width: '100%',
-                    padding: '0.75rem',
-                    borderRadius: '12px',
-                    border: '2px solid #E8E3D8',
-                    backgroundColor: 'white',
-                    fontSize: '1rem',
-                    fontFamily: 'inherit'
-                  }}
-                />
-              </div>
-
-              <div>
-                <label style={{ 
-                  display: 'block', 
-                  marginBottom: '0.5rem', 
-                  fontWeight: 'bold', 
-                  fontSize: '0.9rem',
-                  color: '#8B7355'
-                }}>
-                  Message
-                </label>
-                <textarea 
-                  value={composeMessage}
-                  onChange={(e) => setComposeMessage(e.target.value)}
-                  placeholder="Write your letter here..."
-                  rows={8}
-                  style={{
-                    width: '100%',
-                    padding: '0.75rem',
-                    borderRadius: '12px',
-                    border: '2px solid #E8E3D8',
-                    backgroundColor: 'white',
-                    fontSize: '1rem',
-                    resize: 'vertical',
-                    fontFamily: 'inherit',
-                    lineHeight: '1.6'
-                  }}
-                />
-              </div>
-
-              <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end', marginTop: '1rem' }}>
-                <button
-                  onClick={() => {
-                    setShowCompose(false)
-                    setComposeRecipient('')
-                    setComposeSubject('')
-                    setComposeMessage('')
-                  }}
-                  style={{
-                    padding: '0.75rem 1.5rem',
-                    backgroundColor: 'transparent',
-                    color: '#8B7355',
-                    border: '2px solid #E8C5B5',
-                    borderRadius: '12px',
-                    fontSize: '1rem',
-                    cursor: 'pointer',
-                    fontWeight: 'bold'
-                  }}
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={() => {
-                    if (!composeRecipient || !composeSubject || !composeMessage) {
-                      alert('Please fill in all fields!')
-                      return
-                    }
-                    
-                    const newMessage: Message = {
-                      id: sentMessages.length,
-                      to: composeRecipient,
-                      subject: composeSubject,
-                      content: composeMessage,
-                      isOpen: true,
-                      from: ''
-                    }
-                    
-                    setSentMessages([...sentMessages, newMessage])
-                    setShowCompose(false)
-                    setComposeRecipient('')
-                    setComposeSubject('')
-                    setComposeMessage('')
-                    setMailboxView('sent')
-                  }}
-                  style={{
-                    padding: '0.75rem 1.5rem',
-                    backgroundColor: '#9CAF88',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '12px',
-                    fontSize: '1rem',
-                    cursor: 'pointer',
-                    fontWeight: 'bold'
-                  }}
-                >
-                  Send Letter
-                </button>
-              </div>
-            </div>
           </div>
         </div>
       )}
@@ -1209,150 +938,158 @@ useEffect(() => {
           </div>
         )}
 
-        {/* Find a Pen Pal Section */}
-        {activeCategory === 'Find a Pen Pal' && userRole === 'mentor' && !isMatched && (
+        {/* Mailbox Section */}
+        {activeCategory === 'Mailbox' && (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            <div style={{ 
+              width: '100%',
+              maxWidth: '1200px',
+              padding: '0 1rem',
+              marginBottom: '2rem'
+            }}>
+              <div style={{ 
+                display: 'flex', 
+                gap: '2rem', 
+                borderBottom: '2px solid #e0e0e0',
+                paddingBottom: '1rem'
+              }}>
+                <button
+                  onClick={() => setMailboxTab('received')}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    fontSize: '1.2rem',
+                    cursor: 'pointer',
+                    fontWeight: mailboxTab === 'received' ? 'bold' : 'normal',
+                    color: mailboxTab === 'received' ? '#333' : '#999',
+                    borderBottom: mailboxTab === 'received' ? '3px solid #9CAF88' : 'none',
+                    paddingBottom: '0.5rem'
+                  }}
+                >
+                  Received
+                </button>
+                <button
+                  onClick={() => setMailboxTab('sent')}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    fontSize: '1.2rem',
+                    cursor: 'pointer',
+                    fontWeight: mailboxTab === 'sent' ? 'bold' : 'normal',
+                    color: mailboxTab === 'sent' ? '#333' : '#999',
+                    borderBottom: mailboxTab === 'sent' ? '3px solid #9CAF88' : 'none',
+                    paddingBottom: '0.5rem'
+                  }}
+                >
+                  Sent
+                </button>
+              </div>
+            </div>
+
             {loadingMessages ? (
               <div style={{ textAlign: 'center', padding: '3rem', color: '#666' }}>
                 Loading letters...
               </div>
             ) : (
-              <>
-                <div style={{ 
-                  display: 'flex', 
-                  gap: '2rem', 
-                  marginBottom: '2rem',
-                  borderBottom: '2px solid #e0e0e0',
-                  paddingBottom: '1rem'
-                }}>
-                  <button
-                    onClick={() => setMailboxTab('received')}
+              <div style={{ 
+                display: 'grid', 
+                gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))',
+                gap: '2rem',
+                width: '100%',
+                maxWidth: '1200px',
+                padding: '1rem'
+              }}>
+                {(mailboxTab === 'received' ? messages : sentMessages).map(message => (
+                  <div
+                    key={message.id}
+                    onClick={() => toggleMessage(message.id)}
                     style={{
-                      background: 'none',
-                      border: 'none',
-                      fontSize: '1.2rem',
                       cursor: 'pointer',
-                      fontWeight: mailboxTab === 'received' ? 'bold' : 'normal',
-                      color: mailboxTab === 'received' ? '#333' : '#999',
-                      borderBottom: mailboxTab === 'received' ? '3px solid #9CAF88' : 'none',
-                      paddingBottom: '0.5rem'
+                      transition: 'transform 0.3s ease',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      gap: '1rem'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.transform = 'translateY(-10px)'
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = 'translateY(0)'
                     }}
                   >
-                    Received
-                  </button>
-                  <button
-                    onClick={() => setMailboxTab('sent')}
-                    style={{
-                      background: 'none',
-                      border: 'none',
-                      fontSize: '1.2rem',
-                      cursor: 'pointer',
-                      fontWeight: mailboxTab === 'sent' ? 'bold' : 'normal',
-                      color: mailboxTab === 'sent' ? '#333' : '#999',
-                      borderBottom: mailboxTab === 'sent' ? '3px solid #9CAF88' : 'none',
-                      paddingBottom: '0.5rem'
-                    }}
-                  >
-                    Sent
-                  </button>
-                </div>
-
-                {isMatched && penpalInfo && (
-                  <div style={{ marginBottom: '2rem', width: '100%', maxWidth: '1200px', display: 'flex', justifyContent: 'flex-end' }}>
-                    <button
-                      onClick={() => setShowComposeModal(true)}
-                      style={{
-                        padding: '0.75rem 1.5rem',
-                        backgroundColor: '#9CAF88',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '8px',
-                        fontSize: '1rem',
-                        cursor: 'pointer',
-                        fontWeight: 'bold',
-                        transition: 'background-color 0.2s'
-                      }}
-                      onMouseEnter={(e) => e.target.style.backgroundColor = '#8a9e78'}
-                      onMouseLeave={(e) => e.target.style.backgroundColor = '#9CAF88'}
-                    >
-                      Send a Letter
-                    </button>
-                  </div>
-                )}
-
-                <div style={{ 
-                  display: 'grid', 
-                  gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))',
-                  gap: '2rem',
-                  width: '100%',
-                  maxWidth: '1200px',
-                  padding: '1rem'
-                }}>
-                  {(mailboxTab === 'received' ? messages : sentMessages).map(message => (
-                    <div
-                      key={message.id}
-                      onClick={() => toggleMessage(message.id)}
-                      style={{
-                        cursor: 'pointer',
-                        transition: 'transform 0.3s ease',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        gap: '1rem'
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.transform = 'translateY(-10px)'
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.transform = 'translateY(0)'
-                      }}
-                    >
-                      <div style={{
-                        width: '250px',
-                        height: '200px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center'
-                      }}>
-                        <img 
-                          src={message.isOpen ? '/envelope-open.png' : '/envelope-closed.png'} 
-                          alt={message.isOpen ? 'Open envelope' : 'Closed envelope'}
-                          style={{ 
-                            width: '100%', 
-                            height: '100%', 
-                            objectFit: 'contain' 
-                          }} 
-                        />
-                      </div>
-
-                      <div style={{ 
-                        textAlign: 'center',
-                        width: '100%'
-                      }}>
-                        <p style={{ 
-                          fontWeight: 'bold', 
-                          fontSize: '0.9rem',
-                          marginBottom: '0.25rem',
-                          color: '#333'
-                        }}>
-                          {mailboxTab === 'received' ? `From: ${message.from}` : `To: ${message.to}`}
-                        </p>
-                        <p style={{ 
-                          fontSize: '0.85rem',
-                          color: '#666',
-                          fontStyle: 'italic'
-                        }}>
-                          {message.subject}
-                        </p>
-                      </div>
+                    <div style={{
+                      width: '250px',
+                      height: '200px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}>
+                      <img 
+                        src={message.isOpen ? '/envelope-open.png' : '/envelope-closed.png'} 
+                        alt={message.isOpen ? 'Open envelope' : 'Closed envelope'}
+                        style={{ 
+                          width: '100%', 
+                          height: '100%', 
+                          objectFit: 'contain' 
+                        }} 
+                      />
                     </div>
-                  ))}
-                </div>
-              </>
+
+                    <div style={{ 
+                      textAlign: 'center',
+                      width: '100%'
+                    }}>
+                      <p style={{ 
+                        fontWeight: 'bold', 
+                        fontSize: '0.9rem',
+                        marginBottom: '0.25rem',
+                        color: '#333'
+                      }}>
+                        {mailboxTab === 'received' ? `From: ${message.from}` : `To: ${message.to}`}
+                      </p>
+                      <p style={{ 
+                        fontSize: '0.85rem',
+                        color: '#666',
+                        fontStyle: 'italic'
+                      }}>
+                        {message.subject}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
             )}
+
+            <div style={{ marginTop: '3rem', padding: '1.5rem', backgroundColor: '#f9f9f9', borderRadius: '8px' }}>
+              <h3 style={{ marginBottom: '1rem' }}>🧪 Demo Controls (for testing)</h3>
+              <button 
+                onClick={() => {
+                  const newId = sentMessages.length
+                  setSentMessages([...sentMessages, {
+                    id: newId,
+                    isOpen: true,
+                    to: 'Test Recipient',
+                    subject: 'Test sent message #' + (newId + 1),
+                    content: 'This is a test sent message content!'
+                  }])
+                }}
+                style={{ 
+                  padding: '0.5rem 1rem', 
+                  backgroundColor: '#9CAF88', 
+                  color: 'white', 
+                  border: 'none', 
+                  borderRadius: '6px', 
+                  cursor: 'pointer' 
+                }}
+              >
+                Add Test Sent Message
+              </button>
+            </div>
           </div>
         )}
 
+        {/* Find a Pen Pal Section */}
         {activeCategory === 'Find a Pen Pal' && userRole === 'mentor' && !isMatched && (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
             <h2 style={{ fontSize: '1.5rem', marginBottom: '1rem' }}>Find a Pen Pal</h2>
@@ -1424,54 +1161,48 @@ useEffect(() => {
                         <div>
                           <strong style={{ color: '#666' }}>Interests:</strong>
                           <p style={{ 
-                            fontWeight: 'bold', 
-                            fontSize: '0.9rem',
-                            marginBottom: '0.25rem',
-                            color: '#333'
+                            margin: '0.25rem 0 0 0', 
+                            color: '#333',
+                            lineHeight: '1.5'
                           }}>
-                            To: {message.to}
-                          </p>
-                          <p style={{ 
-                            fontSize: '0.85rem',
-                            color: '#666',
-                            fontStyle: 'italic'
-                          }}>
-                            {message.subject}
+                            {student.interests}
                           </p>
                         </div>
-                      </div>
-                    ))}
-                  </div>
-
-                  <div style={{ marginTop: '3rem', padding: '1.5rem', backgroundColor: '#f9f9f9', borderRadius: '8px' }}>
-                    <h3 style={{ marginBottom: '1rem' }}>🧪 Demo Controls (for testing)</h3>
-                    <button 
-                      onClick={() => {
-                        const newId = sentMessages.length
-                        setSentMessages([...sentMessages, {
-                          id: newId,
-                          to: 'Test Recipient',
-                          subject: 'Test sent message #' + (newId + 1),
-                          content: 'This is a test sent message content.',
-                          isOpen: true,
-                          from: ''
-                        }])
+                      )}
+                    </div>
+                    
+                    <button
+                      onClick={() => handleCreateMatch(student.id)}
+                      disabled={matchingInProgress}
+                      style={{
+                        padding: '0.75rem 1.5rem',
+                        backgroundColor: matchingInProgress ? '#ccc' : '#9CAF88',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '6px',
+                        fontSize: '1rem',
+                        cursor: matchingInProgress ? 'not-allowed' : 'pointer',
+                        fontWeight: 'bold',
+                        transition: 'background-color 0.2s',
+                        width: '100%'
                       }}
-                      style={{ 
-                        padding: '0.5rem 1rem', 
-                        backgroundColor: '#9CAF88', 
-                        color: 'white', 
-                        border: 'none', 
-                        borderRadius: '6px', 
-                        cursor: 'pointer' 
+                      onMouseEnter={(e) => {
+                        if (!matchingInProgress) {
+                          e.currentTarget.style.backgroundColor = '#8a9e78'
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (!matchingInProgress) {
+                          e.currentTarget.style.backgroundColor = '#9CAF88'
+                        }
                       }}
                     >
-                      Add Test Sent Message
+                      {matchingInProgress ? 'Matching...' : 'Be Their Penpal!'}
                     </button>
                   </div>
-                </>
-              )}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
         
