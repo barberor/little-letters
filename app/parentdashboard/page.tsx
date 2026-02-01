@@ -78,21 +78,44 @@ export default function ParentDashboardPage() {
           )}
 
           {/* NOT APPROVED */}
-          {!child.approved && (
-            <>
-              <p className="text-gray-700">
-                Your child has signed up for the program. Please review and
-                approve their participation.
-              </p>
+            {!child.approved && (
+            <div className="space-y-4">
+                <p className="text-gray-700">
+                <strong>Little Letters</strong> is a supervised mentorship program that
+                connects students with trained Michigan State University mentors through thoughtful, written
+                correspondence.
+                </p>
 
-              <button
+                <p className="text-gray-700">
+                Before your child begins exchanging letters, we ask a parent or guardian
+                to review and approve their participation.
+                </p>
+
+                <ul className="list-disc pl-5 text-gray-700 space-y-1">
+                <li>All mentors are students of Michigan State University and are vetted and approved by the program</li>
+                <li>Messages are exchanged in a moderated, child-safe environment</li>
+                <li>
+                    <strong>
+                    You will be able to view all communication between your child and
+                    their mentor at any time
+                    </strong>
+                </li>
+                </ul>
+
+                <p className="text-sm text-gray-600">
+                Once approved, your child will be matched with a mentor based on their
+                interests and grade level.
+                </p>
+
+                <button
                 onClick={approveChild}
                 className="px-4 py-2 rounded-lg bg-[#9CAF88] text-white"
-              >
+                >
                 Approve Participation
-              </button>
-            </>
-          )}
+                </button>
+            </div>
+            )}
+
 
           {/* APPROVED BUT NOT MATCHED */}
           {child.approved && !child.matched && (
