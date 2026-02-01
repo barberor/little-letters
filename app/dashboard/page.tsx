@@ -22,6 +22,9 @@ export default function Dashboard() {
   const [matchingInProgress, setMatchingInProgress] = useState(false)
   const [penpalInfo, setPenpalInfo] = useState<Profile | null>(null)
   const [userProfile, setUserProfile] = useState(null)
+  const [showComposeModal, setShowComposeModal] = useState(false)
+  const [letterContent, setLetterContent] = useState('')
+  const [sendingLetter, setSendingLetter] = useState(false)
   
   // Garden state
   const [seeds, setSeeds] = useState(3)
@@ -222,6 +225,46 @@ useEffect(() => {
     setSelectedMessage(null)
   }
 
+  const handleSendLetter = async () => {
+  if (!letterContent.trim()) {
+    alert('Please write something before sending!')
+    return
+  }
+
+  if (!penpalInfo?.id) {
+    alert('No pen pal found!')
+    return
+  }
+
+  setSendingLetter(true)
+  try {
+    const response = await fetch('/api/letters', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        receiverId: penpalInfo.id,
+        content: letterContent,
+      }),
+    })
+
+    if (response.ok) {
+      alert('Letter sent successfully!')
+      setLetterContent('')
+      setShowComposeModal(false)
+    } else {
+      const error = await response.json()
+      alert(error.error || 'Failed to send letter')
+    }
+  } catch (error) {
+    console.error('Error sending letter:', error)
+    alert('An error occurred while sending the letter')
+  } finally {
+    setSendingLetter(false)
+  }
+}
+
   const getPlotVisual = (stage) => {
     switch(stage) {
       case 'empty':
@@ -239,6 +282,134 @@ useEffect(() => {
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: '#f5f5f0' }}>
+    {/* NEW: Compose Letter Modal - ADD THIS ENTIRE BLOCK HERE */}
+    {showComposeModal && (
+      <div 
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1001
+        }}
+        onClick={() => setShowComposeModal(false)}
+      >
+        <div 
+          style={{
+            backgroundColor: '#fafaf7',
+            borderRadius: '16px',
+            padding: '2rem',
+            maxWidth: '600px',
+            width: '90%',
+            maxHeight: '80vh',
+            overflow: 'auto',
+            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2)',
+            border: '3px solid #E8C5B5',
+          }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+            <h2 style={{ margin: 0, color: '#8B7355', fontSize: '1.8rem' }}>
+              Write to {penpalInfo?.full_name || 'Your Pen Pal'}
+            </h2>
+            <button
+              onClick={() => setShowComposeModal(false)}
+              style={{
+                background: '#E8C5B5',
+                border: 'none',
+                fontSize: '1.5rem',
+                cursor: 'pointer',
+                color: '#8B7355',
+                width: '40px',
+                height: '40px',
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontWeight: 'bold',
+                transition: 'all 0.2s'
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.backgroundColor = '#D9B6A6'
+                e.target.style.transform = 'scale(1.1)'
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.backgroundColor = '#E8C5B5'
+                e.target.style.transform = 'scale(1)'
+              }}
+            >
+              ✕
+            </button>
+          </div>
+
+          <textarea
+            value={letterContent}
+            onChange={(e) => setLetterContent(e.target.value)}
+            placeholder="Write your letter here..."
+            style={{
+              width: '100%',
+              minHeight: '300px',
+              padding: '1rem',
+              fontSize: '1rem',
+              borderRadius: '8px',
+              border: '2px solid #E8E3D8',
+              fontFamily: 'inherit',
+              resize: 'vertical',
+              marginBottom: '1.5rem',
+              lineHeight: '1.6'
+            }}
+          />
+
+          <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
+            <button
+              onClick={() => setShowComposeModal(false)}
+              style={{
+                padding: '0.75rem 1.5rem',
+                backgroundColor: '#ccc',
+                color: '#666',
+                border: 'none',
+                borderRadius: '6px',
+                fontSize: '1rem',
+                cursor: 'pointer',
+                fontWeight: 'bold'
+              }}
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleSendLetter}
+              disabled={sendingLetter}
+              style={{
+                padding: '0.75rem 2rem',
+                backgroundColor: sendingLetter ? '#ccc' : '#9CAF88',
+                color: 'white',
+                border: 'none',
+                borderRadius: '6px',
+                fontSize: '1rem',
+                cursor: sendingLetter ? 'not-allowed' : 'pointer',
+                fontWeight: 'bold',
+                transition: 'background-color 0.2s'
+              }}
+              onMouseEnter={(e) => {
+                if (!sendingLetter) e.target.style.backgroundColor = '#8a9e78'
+              }}
+              onMouseLeave={(e) => {
+                if (!sendingLetter) e.target.style.backgroundColor = '#9CAF88'
+              }}
+            >
+              {sendingLetter ? 'Sending...' : 'Send Letter'}
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
+
+
       {selectedMessage && (
         <div 
           style={{
@@ -650,6 +821,8 @@ useEffect(() => {
                 </p>
               </div>
           </div>
+
+          
         )}
         
         {activeCategory === 'My Mentor' && (
@@ -765,7 +938,7 @@ useEffect(() => {
                       lineHeight: '1.6',
                       color: '#444'
                     }}>
-                     {penpalInfo?.full_name || 'Your pen pal'} loves the ocean! She is majoring in environmental science and wants to protect the sea turtles at all costs. She loves to dive underwater and take photos of marine life!
+                     {penpalInfo?.full_name || 'Your pen pal'} loves the ocean! She is majoring in environmental science and wants to protect the sea turtles at all costs. She loves to dive underwater and take marine life!
                     </p>
                   </div>
 
@@ -895,6 +1068,34 @@ useEffect(() => {
                 </div>
               ))}
             </div>
+
+             {/* ADD THE BUTTON HERE - right after the closing </div> of the grid */}
+    {isMatched && penpalInfo && (
+      <div style={{ marginTop: '2rem', maxWidth: '1200px', width: '100%' }}>
+        <button
+          onClick={() => setShowComposeModal(true)}
+          style={{
+            padding: '1rem 2rem',
+            backgroundColor: '#9CAF88',
+            color: 'white',
+            border: 'none',
+            borderRadius: '8px',
+            fontSize: '1.2rem',
+            cursor: 'pointer',
+            fontWeight: 'bold',
+            width: '100%',
+            maxWidth: '400px',
+            transition: 'background-color 0.2s',
+            display: 'block',
+            margin: '0 auto'
+          }}
+          onMouseEnter={(e) => e.target.style.backgroundColor = '#8a9e78'}
+          onMouseLeave={(e) => e.target.style.backgroundColor = '#9CAF88'}
+        >
+          Write to Your Pen Pal!
+        </button>
+      </div>
+    )}
 
             <div style={{ marginTop: '3rem', padding: '1.5rem', backgroundColor: '#f9f9f9', borderRadius: '8px' }}>
               <h3 style={{ marginBottom: '1rem' }}>🧪 Demo Controls (for testing)</h3>
