@@ -134,7 +134,7 @@ export default function Dashboard() {
                 fontSize: '0.9rem',
                 textAlign: 'center'
               }}>
-                ⚠️ This message has already been opened
+                This message has already been opened
               </div>
             )}
 
