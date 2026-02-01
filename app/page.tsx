@@ -20,7 +20,7 @@ export default function Home() {
 
         {/* Subtitle */}
         <p className="text-lg text-[#6f5a4d] max-w-md mx-auto">
-          A safe, thoughtful way to connect students, mentors, and families
+          A safe, thoughtful way to connect K-12 students, MSU mentors, and families
           through letters.
         </p>
 
